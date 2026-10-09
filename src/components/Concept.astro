@@ -1,0 +1,85 @@
+---
+import { Image } from "astro:assets";
+// Placeholder generado. Reemplaza este archivo por tu fotografía (mismo nombre).
+import conceptImage from "../assets/concept.jpg";
+
+const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Eventos"];
+---
+
+<section id="concepto" class="border-t border-white/10 bg-surface/40">
+  <div
+    class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-2 lg:gap-16 lg:px-8"
+  >
+    <!-- Texto poético -->
+    <div>
+      <p class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-accent">
+        El concepto — 縁 / En
+      </p>
+
+      <div class="prose prose-invert prose-en max-w-none">
+        <h2 class="text-3xl font-bold sm:text-4xl">El lazo que todo lo conecta</h2>
+        <p>
+          En japonés, <strong>縁 (En)</strong> es el hilo invisible que une a las personas con sus
+          circunstancias. No es casualidad ni destino impuesto: es la serendipia que aparece cuando
+          alguien decide crear.
+        </p>
+        <p>
+          Cada proyecto artístico nace de un encuentro. Una idea que busca manos, un equipo que
+          busca recursos, una historia que busca su momento. En EN CREDIT creemos que ese lazo no
+          debería romperse por un trámite.
+        </p>
+        <blockquote>
+          <p>El arte no es un lujo: es la forma más antigua de financiar esperanza.</p>
+        </blockquote>
+      </div>
+
+      <!-- Disciplinas -->
+      <ul class="mt-8 flex flex-wrap gap-2.5" aria-label="Disciplinas que financiamos">
+        {
+          disciplinas.map((d) => (
+            <li>
+              <span class="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-muted transition duration-300 hover:border-accent/40 hover:text-ink">
+                {d}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <!-- Imagen de apoyo con overlay hacia el fondo -->
+    <figure class="relative mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-white/10">
+      <Image
+        src={conceptImage}
+        alt="Escena nocturna con tonos oscuros que representa la creación artística"
+        widths={[480, 800, 1200]}
+        sizes="(min-width: 1024px) 40vw, 100vw"
+        format="webp"
+        quality={80}
+        loading="lazy"
+        decoding="async"
+        class="h-auto w-full object-cover"
+      />
+      <span
+        class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(10,13,20,0.95),rgba(10,13,20,0.35)_55%,transparent)]"
+        aria-hidden="true"></span>
+      <figcaption
+        class="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-sm text-muted"
+      >
+        Proyecto conceptual · Imagen de referencia
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .prose-en {
+    --tw-prose-body: var(--color-muted);
+    --tw-prose-headings: var(--color-ink);
+    --tw-prose-bold: var(--color-ink);
+    --tw-prose-links: var(--color-accent);
+    --tw-prose-quotes: var(--color-ink);
+    --tw-prose-quote-borders: var(--color-accent);
+    --tw-prose-hr: rgb(255 255 255 / 0.1);
+  }
+</style>

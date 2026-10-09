@@ -1,0 +1,170 @@
+---
+const funciones = [
+  {
+    titulo: "Saldo y movimientos en tiempo real",
+    descripcion: "Consulta cuánto te queda y en qué se fue, sin esperar estados de cuenta.",
+    paths: ["M4 19V5", "M4 19h16", "M8 15v-4M12 15V8M16 15v-6"],
+  },
+  {
+    titulo: "Congela y descongela al instante",
+    descripcion: "Un toque para pausar la tarjeta si la pierdes. Otro para reactivarla.",
+    paths: ["M12 3v18", "M4.2 7.5l15.6 9", "M19.8 7.5 4.2 16.5"],
+  },
+  {
+    titulo: "Asigna fondos por proyecto",
+    descripcion: "Organiza tu crédito entre rodaje, equipo y postproducción en un mismo lugar.",
+    paths: ["M4 7h16v13H4z", "M9 7V5h6v2", "M4 12h16"],
+  },
+];
+---
+
+<section id="app" class="border-t border-white/10">
+  <div
+    class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-2 lg:gap-20 lg:px-8"
+  >
+    <!-- Mockup del teléfono (enteramente en CSS) -->
+    <div class="order-1 flex justify-center lg:order-none">
+      <div
+        class="relative w-full max-w-[19rem] [perspective:1000px]"
+        aria-hidden="true"
+      >
+        <div
+          class="relative aspect-[9/19.5] w-full rounded-[2.75rem] border border-white/15 bg-[linear-gradient(160deg,#1b1e25,#06070b)] p-3 shadow-[0_40px_100px_-30px_rgba(0,0,0,0.95)] ring-1 ring-white/5"
+        >
+          <div class="relative h-full w-full overflow-hidden rounded-[2.15rem] bg-bg">
+            <!-- Glow -->
+            <span
+              class="pointer-events-none absolute -top-10 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-accent/25 blur-3xl"
+            ></span>
+
+            <!-- Notch -->
+            <span
+              class="absolute left-1/2 top-2.5 h-1.5 w-16 -translate-x-1/2 rounded-full bg-white/10"
+            ></span>
+
+            <div class="relative flex h-full flex-col p-4 pt-9">
+              <!-- Cabecera -->
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <span class="font-kanji text-base leading-none text-ink">縁</span>
+                  <span class="text-[0.6rem] font-semibold tracking-[0.2em] text-muted"
+                    >EN CREDIT</span
+                  >
+                </span>
+                <span class="h-2 w-2 rounded-full bg-emerald-400/80"></span>
+              </div>
+
+              <!-- Saldo -->
+              <div class="mt-6 rounded-2xl border border-white/10 bg-surface p-4">
+                <p class="text-[0.65rem] uppercase tracking-[0.18em] text-muted">
+                  Saldo disponible
+                </p>
+                <p class="mt-1 font-display text-2xl font-bold text-ink">
+                  $18,500 <span class="text-sm font-medium text-muted">MXN</span>
+                </p>
+                <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <span class="block h-full w-3/5 rounded-full bg-accent"></span>
+                </div>
+              </div>
+
+              <!-- Selector de proyecto -->
+              <div class="mt-4">
+                <p class="text-[0.65rem] uppercase tracking-[0.18em] text-muted">Proyecto</p>
+                <div
+                  class="mt-1.5 flex items-center justify-between rounded-xl border border-white/10 bg-surface px-3 py-2.5"
+                >
+                  <span class="truncate text-xs font-medium text-ink"
+                    >Cortometraje Luz de Barrio</span
+                  >
+                  <svg
+                    class="h-4 w-4 shrink-0 text-muted"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Botón congelar -->
+              <button
+                type="button"
+                tabindex="-1"
+                class="mt-auto flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-ink"
+              >
+                <svg
+                  class="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 3v18"></path>
+                  <path d="M4.2 7.5l15.6 9"></path>
+                  <path d="M19.8 7.5 4.2 16.5"></path>
+                </svg>
+                Congelar tarjeta
+              </button>
+
+              <!-- Barra inferior -->
+              <div class="mt-4 flex items-center justify-center gap-5">
+                <span class="h-1.5 w-6 rounded-full bg-accent"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-white/15"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-white/15"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-white/15"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de funciones -->
+    <div>
+      <p class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-accent">
+        La app
+      </p>
+      <h2 class="text-[clamp(1.875rem,4.5vw,3rem)] font-bold leading-tight text-ink">
+        Tu crédito, bajo control desde el bolsillo
+      </h2>
+      <p class="mt-4 max-w-lg text-base text-muted">
+        Todo lo que necesitas para administrar tu proyecto, sin llamadas ni sucursales.
+      </p>
+
+      <ul class="mt-9 flex flex-col gap-6">
+        {
+          funciones.map((fn) => (
+            <li class="flex items-start gap-4">
+              <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface text-accent">
+                <svg
+                  class="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  {fn.paths.map((d) => (
+                    <path d={d}></path>
+                  ))}
+                </svg>
+              </span>
+              <div>
+                <h3 class="font-display text-base font-bold text-ink">{fn.titulo}</h3>
+                <p class="mt-1 text-sm leading-relaxed text-muted">{fn.descripcion}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>

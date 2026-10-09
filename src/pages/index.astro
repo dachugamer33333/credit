@@ -1,11 +1,31 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import Hero from "../components/Hero.astro";
+import Concept from "../components/Concept.astro";
+import Products from "../components/Products.astro";
+import Security from "../components/Security.astro";
+import AppFeature from "../components/AppFeature.astro";
+import Footer from "../components/Footer.astro";
 ---
 
 <Layout>
-	<Welcome />
+  <a
+    href="#inicio"
+    class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-accent focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-ink"
+  >
+    Saltar al contenido
+  </a>
+
+  <Navbar />
+
+  <main>
+    <Hero />
+    <Concept />
+    <Products />
+    <Security />
+    <AppFeature />
+  </main>
+
+  <Footer />
 </Layout>

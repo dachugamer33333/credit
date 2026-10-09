@@ -1,0 +1,90 @@
+---
+const year = new Date().getFullYear();
+
+const enlaces = [
+  { href: "#concepto", label: "Concepto" },
+  { href: "#productos", label: "Productos" },
+  { href: "#blindaje", label: "Blindaje" },
+  { href: "#app", label: "App" },
+];
+
+const legales = [
+  { href: "#", label: "Términos y condiciones" },
+  { href: "#", label: "Aviso de privacidad" },
+  { href: "#", label: "Contacto" },
+];
+---
+
+<footer class="border-t border-white/10 bg-surface/40">
+  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
+      <!-- Marca -->
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="font-kanji text-2xl leading-none text-ink" aria-hidden="true">縁</span>
+          <span class="flex flex-col gap-1.5">
+            <span class="font-display text-sm tracking-[0.28em] text-ink">EN CREDIT</span>
+            <span class="tri-line h-[3px] w-full rounded-full" aria-hidden="true"></span>
+          </span>
+        </div>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-muted">
+          El arte también mueve al mundo.
+        </p>
+      </div>
+
+      <!-- Navegación -->
+      <nav aria-label="Enlaces del sitio">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-ink">Explora</h2>
+        <ul class="mt-4 flex flex-col gap-1">
+          {
+            enlaces.map((e) => (
+              <li>
+                <a
+                  href={e.href}
+                  class="inline-flex min-h-11 items-center text-sm text-muted transition duration-300 hover:text-ink"
+                >
+                  {e.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <!-- Legal -->
+      <nav aria-label="Enlaces legales">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-ink">Legal</h2>
+        <ul class="mt-4 flex flex-col gap-1">
+          {
+            legales.map((e) => (
+              <li>
+                <a
+                  href={e.href}
+                  class="inline-flex min-h-11 items-center text-sm text-muted transition duration-300 hover:text-ink"
+                >
+                  {e.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Avisos -->
+    <div class="mt-12 border-t border-white/10 pt-8">
+      <p class="text-xs leading-relaxed text-muted">
+        <span class="font-semibold text-ink">Crédito responsable:</span> Antes de contratar,
+        compara y verifica las condiciones. Un crédito es un compromiso que asumes con tu
+        proyecto y con tu futuro; solicítalo solo si puedes cumplir con los pagos.
+      </p>
+      <p class="mt-4 text-xs leading-relaxed text-muted">
+        <span class="font-semibold text-ink">Proyecto conceptual, sin oferta real de crédito.</span>
+        Los montos, tasas y CAT mostrados son ficticios y con fines demostrativos.
+      </p>
+      <p class="mt-6 text-xs text-muted">
+        © {year} EN CREDIT 縁 CREDIT. Todos los derechos reservados.
+      </p>
+    </div>
+  </div>
+</footer>
