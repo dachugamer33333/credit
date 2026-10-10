@@ -1,4 +1,5 @@
 ---
+import { APP_PATH } from "../config";
 // 8 puntos de seguridad. Solo 1–6 viven sobre la tarjeta (con punto numerado);
 // 7–8 pertenecen a la app y se enlazan a la sección #app.
 const puntos = [
@@ -438,7 +439,7 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
             <span class="font-semibold text-ink">8 Bloqueo y alertas</span>
           </p>
           <a
-            href="#app"
+            href={APP_PATH}
             class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-border px-4 text-sm font-semibold text-ink transition duration-300 hover:border-slate-300 hover:bg-slate-100"
           >
             Ver la app
