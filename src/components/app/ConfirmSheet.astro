@@ -55,4 +55,10 @@
     const sheet = document.querySelector<HTMLElement>("[data-confirm-sheet]");
     if (event.key === "Escape" && sheet && !sheet.hidden) settleConfirm(false);
   });
+
+  // Cierra el sheet si se navega a otra pantalla mientras está abierto.
+  window.addEventListener("hashchange", () => {
+    const sheet = document.querySelector<HTMLElement>("[data-confirm-sheet]");
+    if (sheet && !sheet.hidden) settleConfirm(false);
+  });
 </script>

@@ -106,14 +106,15 @@ import { virtualCard } from "../../config/product";
 
   initRipple();
 
-  const numEl = document.querySelector<HTMLElement>("[data-num]");
-  const expEl = document.querySelector<HTMLElement>("[data-exp]");
-  const cvvEl = document.querySelector<HTMLElement>("[data-cvv]");
-  const ring = document.querySelector<SVGCircleElement>("[data-ring]");
-  const countdown = document.querySelector<HTMLElement>("[data-countdown]");
-  const revealBtn = document.querySelector<HTMLButtonElement>("[data-reveal]");
-  const copyBtn = document.querySelector<HTMLButtonElement>("[data-copy]");
-  const live = document.querySelector<HTMLElement>("[data-live]");
+  const root = document.querySelector<HTMLElement>('[data-screen="pagar-digital"]');
+  const numEl = root?.querySelector<HTMLElement>("[data-num]");
+  const expEl = root?.querySelector<HTMLElement>("[data-exp]");
+  const cvvEl = root?.querySelector<HTMLElement>("[data-cvv]");
+  const ring = root?.querySelector<SVGCircleElement>("[data-ring]");
+  const countdown = root?.querySelector<HTMLElement>("[data-countdown]");
+  const revealBtn = root?.querySelector<HTMLButtonElement>("[data-reveal]");
+  const copyBtn = root?.querySelector<HTMLButtonElement>("[data-copy]");
+  const live = root?.querySelector<HTMLElement>("[data-live]");
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const CIRC = 2 * Math.PI * 20;

@@ -160,24 +160,27 @@ const initials = (nombre: string): string =>
   import { charge, disponible, subscribe } from "../../lib/account";
   import { openConfirm } from "../../lib/confirm";
   import { setReceipt } from "../../lib/receipt";
-  import { adeudoPorReferencia, folio8 } from "../../lib/payments";
+  import { adeudoPorReferencia } from "../../lib/payments";
   import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
   import { services } from "../../config/services";
   import { initRipple } from "../../lib/ripple";
 
   initRipple();
 
-  const catButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-cat]"));
-  const serviceButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-service]"));
-  const selectedEl = document.querySelector<HTMLElement>("[data-selected]");
-  const refInput = document.querySelector<HTMLInputElement>("[data-ref]");
-  const refHelp = document.querySelector<HTMLElement>("[data-ref-help]");
-  const refCount = document.querySelector<HTMLElement>("[data-ref-count]");
-  const exampleBtn = document.querySelector<HTMLButtonElement>("[data-ref-example]");
-  const consultBtn = document.querySelector<HTMLButtonElement>("[data-consult]");
-  const result = document.querySelector<HTMLElement>("[data-result]");
-  const errorEl = document.querySelector<HTMLElement>("[data-error]");
-  const payBtn = document.querySelector<HTMLButtonElement>("[data-pay]");
+  const root = document.querySelector<HTMLElement>('[data-screen="pagar-servicios"]');
+  const catButtons = Array.from(root?.querySelectorAll<HTMLButtonElement>("[data-cat]") ?? []);
+  const serviceButtons = Array.from(
+    root?.querySelectorAll<HTMLButtonElement>("[data-service]") ?? []
+  );
+  const selectedEl = root?.querySelector<HTMLElement>("[data-selected]");
+  const refInput = root?.querySelector<HTMLInputElement>("[data-ref]");
+  const refHelp = root?.querySelector<HTMLElement>("[data-ref-help]");
+  const refCount = root?.querySelector<HTMLElement>("[data-ref-count]");
+  const exampleBtn = root?.querySelector<HTMLButtonElement>("[data-ref-example]");
+  const consultBtn = root?.querySelector<HTMLButtonElement>("[data-consult]");
+  const result = root?.querySelector<HTMLElement>("[data-result]");
+  const errorEl = root?.querySelector<HTMLElement>("[data-error]");
+  const payBtn = root?.querySelector<HTMLButtonElement>("[data-pay]");
 
   let selected = services[0];
   let adeudo = 0;
@@ -254,7 +257,7 @@ const initials = (nombre: string): string =>
       const ref = refInput.value;
 
       const setText = (sel: string, text: string) => {
-        const el = document.querySelector<HTMLElement>(sel);
+        const el = root?.querySelector<HTMLElement>(sel);
         if (el) el.textContent = text;
       };
       setText("[data-r-service]", serviceName);
@@ -294,7 +297,7 @@ const initials = (nombre: string): string =>
     if (!ok) return;
 
     const res = charge(adeudo, `${serviceName} · ${ref}`, "servicio");
-    if (!res.ok) {
+    if (!res.ok || !res.movement) {
       if (errorEl) {
         errorEl.hidden = false;
         errorEl.textContent = res.error === "frozen" ? "Tu tarjeta está congelada." : "Excede tu crédito disponible";
@@ -304,11 +307,16 @@ const initials = (nombre: string): string =>
 
     setReceipt({
       tipo: "Pago de servicio",
-      monto: adeudo,
+      monto: res.movement.monto,
       concepto: `${serviceName} · Ref ${ref}`,
-      fecha: new Date().toISOString(),
-      folio: folio8(),
+      fecha: res.movement.fecha,
+      folio: res.movement.folio,
     });
+    // Limpia el formulario para una operación nueva.
+    adeudo = 0;
+    if (refInput) refInput.value = "";
+    if (result) result.hidden = true;
+    updateConsult();
     window.location.replace("#/comprobante");
   });
 

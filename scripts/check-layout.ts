@@ -18,6 +18,18 @@ const screens: ScreenCheck[] = [
   { file: "PayServices.astro", screen: "pagar-servicios", topbar: true },
   { file: "PayTopup.astro", screen: "pagar-recarga", topbar: true },
   { file: "Receipt.astro", screen: "comprobante", topbar: false },
+  { file: "HistoryScreen.astro", screen: "historial", topbar: true },
+];
+
+// Archivos con script que deben scopear sus consultas a su propia pantalla
+// (evita colisiones de selectores tipo [data-submit]/[data-error]).
+const scopedFiles = [
+  "PayCard.astro",
+  "PayTopup.astro",
+  "PayServices.astro",
+  "PayDigital.astro",
+  "Receipt.astro",
+  "HistoryScreen.astro",
 ];
 
 let failures = 0;
@@ -57,6 +69,12 @@ for (const s of screens) {
 
   check(`${s.file}: no redefine el wrapper (max-w-[560px])`, !src.includes("max-w-[560px]"));
   check(`${s.file}: zonas táctiles (min-h-)`, src.includes("min-h-"));
+}
+
+for (const file of scopedFiles) {
+  const src = readFileSync(join(appDir, file), "utf8");
+  const scoped = /querySelector(?:<[^>]*>)?\(\s*['"`]\[data-screen=/.test(src);
+  check(`${file}: consultas scopeadas a su pantalla`, scoped);
 }
 
 console.log("");

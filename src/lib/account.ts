@@ -1,5 +1,6 @@
 import { credit, movements as seedMovements } from "../config/product.ts";
 import { getMovementDate } from "./format.ts";
+import { folio8 } from "./payments.ts";
 
 export interface AccountMovement {
   id: string;
@@ -7,6 +8,7 @@ export interface AccountMovement {
   concepto: string;
   monto: number;
   fecha: string;
+  folio: string;
 }
 
 export interface AccountState {
@@ -18,6 +20,12 @@ export interface AccountState {
 export interface ChargeResult {
   ok: boolean;
   error?: "frozen" | "insufficient";
+  movement?: AccountMovement;
+}
+
+export interface PayDownResult {
+  applied: number;
+  movement?: AccountMovement;
 }
 
 const STORAGE_KEY = "encredit:account";
@@ -29,6 +37,7 @@ const initialMovements = (): AccountMovement[] =>
     concepto: m.description,
     monto: m.amount,
     fecha: getMovementDate(m.daysAgo).toISOString(),
+    folio: folio8(),
   }));
 
 const initialState = (): AccountState => ({
@@ -54,7 +63,16 @@ const load = (): AccountState => {
       loaded = null;
     }
   }
-  state = loaded && typeof loaded.usado === "number" ? loaded : initialState();
+  state =
+    loaded && typeof loaded.usado === "number"
+      ? {
+          ...loaded,
+          movimientos: (loaded.movimientos ?? []).map((m) => ({
+            ...m,
+            folio: m.folio ?? folio8(),
+          })),
+        }
+      : initialState();
   return state;
 };
 
@@ -107,15 +125,17 @@ export const charge = (monto: number, concepto: string, tipo: string): ChargeRes
     return { ok: false, error: "insufficient" };
   }
   s.usado += monto;
-  s.movimientos.unshift({
+  const movement: AccountMovement = {
     id: newId(),
     tipo,
     concepto,
     monto,
     fecha: new Date().toISOString(),
-  });
+    folio: folio8(),
+  };
+  s.movimientos.unshift(movement);
   commit();
-  return { ok: true };
+  return { ok: true, movement };
 };
 
 // Reduce el usado (nunca por debajo de 0) y registra el abono aplicado.
@@ -123,21 +143,24 @@ export const payDown = (
   monto: number,
   concepto = "Pago a la tarjeta",
   tipo = "pago"
-): number => {
+): PayDownResult => {
   const s = load();
-  const aplicado = Math.max(0, Math.min(monto, s.usado));
+  const applied = Math.max(0, Math.min(monto, s.usado));
   s.usado = Math.max(0, s.usado - monto);
-  if (aplicado > 0) {
-    s.movimientos.unshift({
+  let movement: AccountMovement | undefined;
+  if (applied > 0) {
+    movement = {
       id: newId(),
       tipo,
       concepto,
-      monto: aplicado,
+      monto: applied,
       fecha: new Date().toISOString(),
-    });
+      folio: folio8(),
+    };
+    s.movimientos.unshift(movement);
   }
   commit();
-  return aplicado;
+  return { applied, movement };
 };
 
 export const toggleFreeze = (): boolean => {

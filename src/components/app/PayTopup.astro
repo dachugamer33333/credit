@@ -110,19 +110,21 @@ import { operators, topupAmounts } from "../../config/services";
   import { charge, disponible, getState, subscribe } from "../../lib/account";
   import { openConfirm } from "../../lib/confirm";
   import { setReceipt } from "../../lib/receipt";
-  import { folio8 } from "../../lib/payments";
   import { formatMXN } from "../../lib/format";
   import { operators } from "../../config/services";
   import { initRipple } from "../../lib/ripple";
 
   initRipple();
 
-  const opButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-op]"));
-  const amountButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-amount]"));
-  const phoneInput = document.querySelector<HTMLInputElement>("[data-phone]");
-  const phoneCount = document.querySelector<HTMLElement>("[data-phone-count]");
-  const submit = document.querySelector<HTMLButtonElement>("[data-submit]");
-  const errorEl = document.querySelector<HTMLElement>("[data-error]");
+  const root = document.querySelector<HTMLElement>('[data-screen="pagar-recarga"]');
+  const opButtons = Array.from(root?.querySelectorAll<HTMLButtonElement>("[data-op]") ?? []);
+  const amountButtons = Array.from(
+    root?.querySelectorAll<HTMLButtonElement>("[data-amount]") ?? []
+  );
+  const phoneInput = root?.querySelector<HTMLInputElement>("[data-phone]");
+  const phoneCount = root?.querySelector<HTMLElement>("[data-phone-count]");
+  const submit = root?.querySelector<HTMLButtonElement>("[data-submit]");
+  const errorEl = root?.querySelector<HTMLElement>("[data-error]");
 
   let operatorId = "";
   let amount = 0;
@@ -198,7 +200,7 @@ import { operators, topupAmounts } from "../../config/services";
     }
 
     const res = charge(amount, `${op.nombre} · ${formatPhone(digits)}`, "recarga");
-    if (!res.ok) {
+    if (!res.ok || !res.movement) {
       if (errorEl) {
         errorEl.hidden = false;
         errorEl.textContent = res.error === "frozen" ? "Tu tarjeta está congelada." : "Excede tu crédito disponible";
@@ -208,11 +210,18 @@ import { operators, topupAmounts } from "../../config/services";
 
     setReceipt({
       tipo: "Recarga de tiempo aire",
-      monto: amount,
-      concepto: `${op.nombre} · ${formatPhone(digits)}`,
-      fecha: new Date().toISOString(),
-      folio: folio8(),
+      monto: res.movement.monto,
+      concepto: res.movement.concepto,
+      fecha: res.movement.fecha,
+      folio: res.movement.folio,
     });
+    // Limpia el formulario para una operación nueva.
+    operatorId = "";
+    amount = 0;
+    if (phoneInput) phoneInput.value = "";
+    opButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    amountButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    update();
     window.location.replace("#/comprobante");
   });
 

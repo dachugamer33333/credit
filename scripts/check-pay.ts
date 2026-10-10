@@ -51,6 +51,11 @@ check("usado inicial = 1500", getState().usado === 1500, `${getState().usado}`);
 
 const r1 = charge(100, "Prueba", "servicio");
 check("charge suma al usado", r1.ok === true && getState().usado === 1600, `${getState().usado}`);
+check(
+  "charge crea movimiento con folio de 8 dígitos",
+  r1.ok === true && /^\d{8}$/.test(r1.movement?.folio ?? ""),
+  r1.movement?.folio
+);
 
 const r2 = charge(999999, "Excede", "servicio");
 check(
@@ -71,6 +76,12 @@ toggleFreeze();
 
 reset();
 charge(500, "Compra", "compra");
+const pd = payDown(200, "Pago parcial");
+check(
+  "payDown crea movimiento con folio de 8 dígitos",
+  /^\d{8}$/.test(pd.movement?.folio ?? ""),
+  pd.movement?.folio
+);
 payDown(999999);
 check("payDown nunca deja usado negativo", getState().usado === 0, `${getState().usado}`);
 check("disponible tras pago total = límite", disponible() === 20000, `${disponible()}`);

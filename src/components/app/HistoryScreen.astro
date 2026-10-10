@@ -1,0 +1,108 @@
+---
+import TopBar from "./TopBar.astro";
+import AppContent from "./AppContent.astro";
+import DemoTag from "./DemoTag.astro";
+---
+
+<section data-screen="historial" hidden class="app-section" aria-hidden="true">
+  <TopBar title="Historial de movimientos" backHref="#/inicio" backLabel="Volver al inicio" flush />
+
+  <AppContent>
+    <div class="flex items-center justify-between gap-2">
+      <p class="text-sm text-muted">Comprueba que tus operaciones se registraron.</p>
+      <DemoTag />
+    </div>
+
+    <ul data-history-list class="mt-4 flex flex-col gap-2"></ul>
+
+    <p data-history-empty hidden class="mt-6 text-center text-sm text-muted">
+      Aún no hay movimientos.
+    </p>
+  </AppContent>
+</section>
+
+<script>
+  import { getState, subscribe, type AccountMovement } from "../../lib/account";
+  import { setReceipt } from "../../lib/receipt";
+  import { formatDateEsMx, formatMXN } from "../../lib/format";
+  import { initRipple } from "../../lib/ripple";
+
+  initRipple();
+
+  const root = document.querySelector<HTMLElement>('[data-screen="historial"]');
+  const list = root?.querySelector<HTMLElement>("[data-history-list]");
+  const empty = root?.querySelector<HTMLElement>("[data-history-empty]");
+
+  const TIPO_LABEL: Record<string, string> = {
+    pago: "Pago a la tarjeta",
+    compra: "Compra",
+    servicio: "Pago de servicio",
+    recarga: "Recarga de tiempo aire",
+  };
+
+  const tipoLabel = (tipo: string): string => TIPO_LABEL[tipo] ?? "Operación";
+
+  const openReceipt = (movement: AccountMovement) => {
+    setReceipt({
+      tipo: tipoLabel(movement.tipo),
+      monto: movement.monto,
+      concepto: movement.concepto,
+      fecha: movement.fecha,
+      folio: movement.folio,
+    });
+    window.location.hash = "#/comprobante";
+  };
+
+  const buildItem = (movement: AccountMovement): HTMLElement => {
+    const abono = movement.tipo === "pago";
+
+    const li = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.ripple = "";
+    button.className =
+      "relative flex min-h-16 w-full items-center gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-3 text-left transition duration-200 hover:bg-bg";
+
+    const icon = document.createElement("span");
+    icon.className = `grid h-10 w-10 shrink-0 place-items-center rounded-full ${
+      abono ? "bg-emerald-50 text-emerald-600" : "bg-accent/10 text-accent"
+    }`;
+    icon.innerHTML =
+      abono
+        ? '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg>'
+        : '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg>';
+
+    const info = document.createElement("span");
+    info.className = "min-w-0 flex-1";
+    const concepto = document.createElement("span");
+    concepto.className = "block truncate font-roboto text-sm font-medium text-ink";
+    concepto.textContent = movement.concepto;
+    const meta = document.createElement("span");
+    meta.className = "block text-xs text-muted";
+    meta.textContent = `${tipoLabel(movement.tipo)} · ${formatDateEsMx(new Date(movement.fecha), {
+      day: "numeric",
+      month: "short",
+    })} · Folio ${movement.folio}`;
+    info.append(concepto, meta);
+
+    const amount = document.createElement("span");
+    amount.className = `shrink-0 font-roboto text-sm font-semibold ${
+      abono ? "text-emerald-600" : "text-ink"
+    }`;
+    amount.textContent = `${abono ? "+" : "−"}${formatMXN(movement.monto)}`;
+
+    button.append(icon, info, amount);
+    button.addEventListener("click", () => openReceipt(movement));
+    li.append(button);
+    return li;
+  };
+
+  const render = () => {
+    const movimientos = getState().movimientos;
+    if (empty) empty.hidden = movimientos.length > 0;
+    list?.replaceChildren(...movimientos.map(buildItem));
+  };
+
+  subscribe(render);
+  render();
+</script>

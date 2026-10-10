@@ -207,9 +207,12 @@ const nextPaymentAmount = formatMXN(credit.nextPaymentAmount);
             </div>
           </dl>
 
-          <h4 class="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-            Movimientos recientes
-          </h4>
+          <div class="mt-4 flex items-center justify-between gap-2">
+            <h4 class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+              Movimientos recientes
+            </h4>
+            <a href="#/historial" class="shrink-0 text-xs font-medium text-accent">Ver historial</a>
+          </div>
           <ul data-movements class="mt-2 flex flex-col divide-y divide-border"></ul>
         </div>
 

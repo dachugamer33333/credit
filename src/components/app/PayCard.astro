@@ -138,21 +138,22 @@ const minimoInicial = pagoMinimo(
   import { getState, payDown, subscribe } from "../../lib/account";
   import { openConfirm } from "../../lib/confirm";
   import { setReceipt } from "../../lib/receipt";
-  import { folio8, pagoMinimo } from "../../lib/payments";
+  import { pagoMinimo } from "../../lib/payments";
   import { credit, paymentConfig } from "../../config/product";
   import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
 
-  const deudaEl = document.querySelector<HTMLElement>("[data-deuda]");
-  const fechaEl = document.querySelector<HTMLElement>("[data-fecha]");
-  const minEl = document.querySelector<HTMLElement>("[data-min-value]");
-  const totalEl = document.querySelector<HTMLElement>("[data-total-value]");
-  const corriente = document.querySelector<HTMLElement>("[data-al-corriente]");
-  const form = document.querySelector<HTMLElement>("[data-pay-form]");
-  const otroWrap = document.querySelector<HTMLElement>("[data-otro-wrap]");
-  const otroInput = document.querySelector<HTMLInputElement>("[data-otro]");
-  const errorEl = document.querySelector<HTMLElement>("[data-error]");
-  const submit = document.querySelector<HTMLButtonElement>("[data-submit]");
-  const options = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-opt]"));
+  const root = document.querySelector<HTMLElement>('[data-screen="pagar-credito"]');
+  const deudaEl = root?.querySelector<HTMLElement>("[data-deuda]");
+  const fechaEl = root?.querySelector<HTMLElement>("[data-fecha]");
+  const minEl = root?.querySelector<HTMLElement>("[data-min-value]");
+  const totalEl = root?.querySelector<HTMLElement>("[data-total-value]");
+  const corriente = root?.querySelector<HTMLElement>("[data-al-corriente]");
+  const form = root?.querySelector<HTMLElement>("[data-pay-form]");
+  const otroWrap = root?.querySelector<HTMLElement>("[data-otro-wrap]");
+  const otroInput = root?.querySelector<HTMLInputElement>("[data-otro]");
+  const errorEl = root?.querySelector<HTMLElement>("[data-error]");
+  const submit = root?.querySelector<HTMLButtonElement>("[data-submit]");
+  const options = Array.from(root?.querySelectorAll<HTMLButtonElement>("[data-opt]") ?? []);
 
   let selected: "min" | "total" | "otro" = "min";
   let deuda = getState().usado;
@@ -230,16 +231,19 @@ const minimoInicial = pagoMinimo(
     });
     if (!ok) return;
 
-    const aplicado = payDown(amount, "Pago a la tarjeta");
-    if (aplicado <= 0) return;
+    const result = payDown(amount, "Pago a la tarjeta");
+    if (!result.movement) return;
 
     setReceipt({
       tipo: "Pago a la tarjeta",
-      monto: aplicado,
+      monto: result.movement.monto,
       concepto: "Abono a tu línea de crédito",
-      fecha: new Date().toISOString(),
-      folio: folio8(),
+      fecha: result.movement.fecha,
+      folio: result.movement.folio,
     });
+    // Limpia el formulario para una operación nueva.
+    otroInput && (otroInput.value = "");
+    setOption("min");
     window.location.replace("#/comprobante");
   });
 
