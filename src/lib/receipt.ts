@@ -1,9 +1,15 @@
+export interface ReceiptDetail {
+  label: string;
+  value: string;
+}
+
 export interface ReceiptData {
   tipo: string;
   monto: number;
   concepto: string;
   fecha: string;
   folio: string;
+  detalles?: ReceiptDetail[];
 }
 
 let current: ReceiptData | null = null;

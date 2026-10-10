@@ -1,0 +1,78 @@
+---
+// Vista previa de destinatario (fluida, sin GSAP ni tilt). La actualiza TransferScreen.
+---
+
+<div
+  data-recipient-card
+  class="relative aspect-[85.6/53.98] w-full overflow-hidden rounded-[1.25rem] border border-white/10 bg-[linear-gradient(135deg,#1e3a8a_0%,#1d4ed8_45%,#0b1220_100%)] shadow-[0_30px_70px_-24px_rgba(2,6,23,0.7)] ring-1 ring-white/10"
+>
+  <span
+    class="pointer-events-none absolute -bottom-14 -left-10 h-[70%] w-[70%] -rotate-12 rounded-full bg-[radial-gradient(closest-side,rgba(96,165,250,0.55),transparent)] blur-2xl"
+    aria-hidden="true"></span>
+  <span class="pointer-events-none absolute inset-0 grain opacity-30" aria-hidden="true"></span>
+  <span
+    class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-kanji text-[5.5rem] leading-none text-white/[0.06]"
+    aria-hidden="true">縁</span
+  >
+
+  <div class="relative flex h-full flex-col justify-between p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-2">
+      <span
+        data-rc-kind
+        class="rc-text rounded-full bg-white/15 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-white/90"
+        >Tarjeta</span
+      >
+      <span data-rc-brand class="rc-text text-xs font-semibold tracking-wide text-white/80"
+        >Visa</span
+      >
+    </div>
+
+    <div>
+      <p
+        data-rc-number
+        class="rc-text font-mono text-base tracking-[0.28em] text-white/90 sm:text-lg"
+      >
+        •••• •••• •••• ••••
+      </p>
+
+      <div class="mt-3 flex items-end justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-[0.55rem] uppercase tracking-[0.2em] text-white/50">Titular</p>
+          <p data-rc-holder class="rc-text truncate text-xs uppercase tracking-[0.12em] text-white/90">
+            NOMBRE DEL TITULAR
+          </p>
+        </div>
+        <div class="min-w-0 text-right">
+          <p class="text-[0.55rem] uppercase tracking-[0.2em] text-white/50">Banco</p>
+          <p data-rc-bank class="rc-text truncate text-xs uppercase tracking-[0.12em] text-white/90">
+            BANCO
+          </p>
+        </div>
+      </div>
+
+      <p
+        data-rc-concept
+        class="rc-text mt-3 truncate text-[0.65rem] uppercase tracking-[0.15em] text-white/60"
+      ></p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .rc-text {
+    transition: opacity 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rc-text {
+      transition: none;
+    }
+  }
+
+  /* Celular horizontal / baja altura: se reduce. */
+  @media (orientation: landscape) and (max-height: 480px) {
+    [data-recipient-card] {
+      max-width: 15rem;
+    }
+  }
+</style>

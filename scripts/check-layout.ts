@@ -19,6 +19,7 @@ const screens: ScreenCheck[] = [
   { file: "PayTopup.astro", screen: "pagar-recarga", topbar: true },
   { file: "Receipt.astro", screen: "comprobante", topbar: false },
   { file: "HistoryScreen.astro", screen: "historial", topbar: true },
+  { file: "TransferScreen.astro", screen: "transferir", topbar: true },
 ];
 
 // Archivos con script que deben scopear sus consultas a su propia pantalla
@@ -30,6 +31,7 @@ const scopedFiles = [
   "PayDigital.astro",
   "Receipt.astro",
   "HistoryScreen.astro",
+  "TransferScreen.astro",
 ];
 
 let failures = 0;
@@ -76,6 +78,15 @@ for (const file of scopedFiles) {
   const scoped = /querySelector(?:<[^>]*>)?\(\s*['"`]\[data-screen=/.test(src);
   check(`${file}: consultas scopeadas a su pantalla`, scoped);
 }
+
+// Umbral de contenedor compartido entre CSS y JS (no deben contradecirse).
+const rootDir = join(here, "..");
+const globalCss = readFileSync(join(rootDir, "src", "styles", "global.css"), "utf8");
+const layoutTs = readFileSync(join(rootDir, "src", "lib", "layout.ts"), "utf8");
+const transferSrc = readFileSync(join(appDir, "TransferScreen.astro"), "utf8");
+check("global.css: --app-breakpoint 640", /--app-breakpoint:\s*640/.test(globalCss));
+check("layout.ts: APP_BREAKPOINT = 640", /APP_BREAKPOINT\s*=\s*640/.test(layoutTs));
+check("TransferScreen: @container app 640px", /min-width:\s*640px/.test(transferSrc));
 
 console.log("");
 if (failures > 0) {

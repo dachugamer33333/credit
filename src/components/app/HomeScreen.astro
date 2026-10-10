@@ -308,7 +308,6 @@ const nextPaymentAmount = formatMXN(credit.nextPaymentAmount);
 
 <script>
   import { initRipple } from "../../lib/ripple";
-  import { showSnackbar } from "../../lib/snackbar";
   import { buildGreeting, getStoredName } from "../../lib/user";
   import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
   import { credit } from "../../config/product";
@@ -408,6 +407,6 @@ const nextPaymentAmount = formatMXN(credit.nextPaymentAmount);
   });
 
   document.querySelector('[data-action="transferir"]')?.addEventListener("click", () => {
-    showSnackbar("Función demostrativa: no incluida en este prototipo");
+    window.location.hash = "#/transferir";
   });
 </script>

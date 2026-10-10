@@ -258,8 +258,9 @@ const initialEmail = emailFromName(DEFAULT_NAME);
 <script>
   import { initRipple } from "../../lib/ripple";
   import { emailFromName, getStoredName } from "../../lib/user";
-  import { reset } from "../../lib/account";
+  import { resetDemo } from "../../lib/demo";
   import { openConfirm } from "../../lib/confirm";
+  import { showSnackbar } from "../../lib/snackbar";
 
   initRipple();
 
@@ -278,10 +279,14 @@ const initialEmail = emailFromName(DEFAULT_NAME);
       title: "Restablecer demo",
       rows: [
         { label: "Saldo y movimientos", value: "Valores iniciales" },
+        { label: "Destinatarios", value: "Valores iniciales" },
         { label: "Tarjeta", value: "Descongelada" },
       ],
       confirmLabel: "Restablecer",
     });
-    if (ok) reset();
+    if (ok) {
+      resetDemo();
+      showSnackbar("Demo restablecida");
+    }
   });
 </script>

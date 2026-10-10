@@ -1,0 +1,839 @@
+---
+import TopBar from "./TopBar.astro";
+import AppContent from "./AppContent.astro";
+import DemoTag from "./DemoTag.astro";
+import FrozenNotice from "./FrozenNotice.astro";
+import RecipientCard from "./RecipientCard.astro";
+---
+
+<section data-screen="transferir" hidden class="app-section" aria-hidden="true">
+  <TopBar title="Transferir" backHref="#/inicio" backLabel="Volver al inicio" flush />
+
+  <AppContent>
+    <FrozenNotice />
+
+    <div class="tr-grid mt-5">
+      <!-- Vista previa -->
+      <div class="tr-preview">
+        <RecipientCard />
+
+        <!-- Destinatarios guardados -->
+        <div class="mt-4">
+          <h3 class="font-roboto text-sm font-medium text-ink">Destinatarios guardados</h3>
+          <div data-recipients class="mt-2 flex gap-2 overflow-x-auto pb-1"></div>
+          <p data-recipients-empty hidden class="mt-2 text-xs text-muted">
+            Aún no tienes destinatarios guardados.
+          </p>
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <div class="tr-form flex flex-col gap-4">
+        <!-- Selector de modo -->
+        <div role="tablist" aria-label="Tipo de destino" class="flex rounded-full border border-border bg-bg p-1">
+          <button
+            type="button"
+            role="tab"
+            aria-selected="true"
+            data-mode="same"
+            class="tr-tab flex-1 rounded-full px-3 py-2 text-sm font-semibold"
+          >
+            Mismo banco
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected="false"
+            data-mode="other"
+            class="tr-tab flex-1 rounded-full px-3 py-2 text-sm font-semibold"
+          >
+            Otros bancos
+          </button>
+        </div>
+
+        <!-- Número -->
+        <div>
+          <label for="tr-number" class="block text-xs uppercase tracking-[0.16em] text-muted"
+            >Número</label
+          >
+          <input
+            id="tr-number"
+            data-number
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="0000 0000 0000 0000"
+            aria-describedby="tr-number-hint tr-number-error"
+            class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 font-mono tracking-wider text-ink"
+          />
+          <p id="tr-number-hint" data-number-hint class="mt-1 text-xs text-muted">
+            Cuenta de 10 dígitos.
+          </p>
+          <p id="tr-number-error" data-number-error hidden class="mt-1 text-xs font-medium text-red-600"></p>
+        </div>
+
+        <!-- Titular -->
+        <div>
+          <label for="tr-holder" class="block text-xs uppercase tracking-[0.16em] text-muted"
+            >Nombre del titular</label
+          >
+          <input
+            id="tr-holder"
+            data-holder
+            type="text"
+            maxlength="40"
+            autocomplete="off"
+            placeholder="Nombre completo"
+            aria-describedby="tr-holder-error"
+            class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-ink"
+          />
+          <p id="tr-holder-error" data-holder-error hidden class="mt-1 text-xs font-medium text-red-600"></p>
+        </div>
+
+        <!-- Banco (combobox) -->
+        <div>
+          <label for="tr-bank" class="block text-xs uppercase tracking-[0.16em] text-muted">Banco</label>
+          <div class="relative">
+            <input
+              id="tr-bank"
+              data-bank-input
+              role="combobox"
+              aria-expanded="false"
+              aria-controls="tr-bank-listbox"
+              aria-autocomplete="list"
+              aria-activedescendant=""
+              autocomplete="off"
+              placeholder="Elige un banco"
+              aria-describedby="tr-bank-hint tr-bank-error"
+              class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-ink disabled:bg-bg"
+            />
+            <ul
+              id="tr-bank-listbox"
+              data-bank-listbox
+              role="listbox"
+              hidden
+              class="absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-[0_20px_40px_-20px_rgba(15,23,42,0.4)]"
+            ></ul>
+          </div>
+          <p id="tr-bank-hint" data-bank-hint hidden class="mt-1 text-xs font-medium text-accent">
+            Detectado por CLABE
+          </p>
+          <p id="tr-bank-error" data-bank-error hidden class="mt-1 text-xs font-medium text-red-600"></p>
+        </div>
+
+        <!-- Monto -->
+        <div>
+          <div class="flex items-center justify-between gap-2">
+            <label for="tr-amount" class="block text-xs uppercase tracking-[0.16em] text-muted"
+              >Monto (MXN)</label
+            >
+            <DemoTag />
+          </div>
+          <input
+            id="tr-amount"
+            data-amount
+            type="number"
+            inputmode="decimal"
+            min="1"
+            step="0.01"
+            placeholder="0.00"
+            aria-describedby="tr-amount-hint tr-amount-error"
+            class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-ink"
+          />
+          <div class="mt-1 flex items-center justify-between gap-2 text-xs text-muted">
+            <span data-available>Disponible: $0</span>
+            <span data-comision></span>
+          </div>
+          <p id="tr-amount-error" data-amount-error hidden class="mt-1 text-xs font-medium text-red-600"></p>
+          <p id="tr-amount-hint" class="sr-only">Monto mínimo 1 peso.</p>
+        </div>
+
+        <!-- Concepto -->
+        <div>
+          <label for="tr-concept" class="block text-xs uppercase tracking-[0.16em] text-muted"
+            >Concepto</label
+          >
+          <input
+            id="tr-concept"
+            data-concept
+            type="text"
+            maxlength="40"
+            autocomplete="off"
+            placeholder="Motivo de la transferencia"
+            aria-describedby="tr-concept-error"
+            class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-ink"
+          />
+          <div class="mt-1 flex items-center justify-between gap-2 text-xs text-muted">
+            <span data-concept-error hidden class="font-medium text-red-600"></span>
+            <span data-concept-count>0/40</span>
+          </div>
+        </div>
+
+        <!-- Referencia -->
+        <div>
+          <label for="tr-reference" class="block text-xs uppercase tracking-[0.16em] text-muted"
+            >Referencia</label
+          >
+          <div class="relative">
+            <input
+              id="tr-reference"
+              data-reference
+              type="text"
+              readonly
+              class="mt-1 min-h-11 w-full rounded-xl border border-border bg-bg px-4 pr-11 font-mono tracking-wider text-ink"
+            />
+            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="10" rx="2" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- Guardar destinatario -->
+        <div class="rounded-2xl border border-border bg-surface p-4">
+          <label class="flex min-h-11 items-center justify-between gap-3">
+            <span class="font-roboto text-sm font-medium text-ink">Guardar destinatario</span>
+            <input data-save type="checkbox" class="h-5 w-5 accent-[var(--color-accent)]" />
+          </label>
+          <div data-alias-wrap hidden class="mt-3">
+            <label for="tr-alias" class="text-xs text-muted">Alias (opcional)</label>
+            <input
+              id="tr-alias"
+              data-alias
+              type="text"
+              maxlength="30"
+              placeholder="Ej. Renta del estudio"
+              class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-ink"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          data-sample
+          class="inline-flex min-h-11 items-center justify-center gap-1.5 self-start text-sm font-medium text-accent"
+        >
+          Usar datos de ejemplo
+        </button>
+
+        <button
+          type="button"
+          data-continue
+          disabled
+          data-ripple
+          class="relative flex min-h-12 items-center justify-center overflow-hidden rounded-full bg-accent px-6 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover disabled:bg-slate-300"
+        >
+          Continuar
+        </button>
+      </div>
+    </div>
+  </AppContent>
+</section>
+
+<style>
+  .tr-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tr-tab[aria-selected="true"] {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  @container app (min-width: 640px) {
+    .tr-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .tr-form {
+      order: 1;
+    }
+
+    .tr-preview {
+      order: 2;
+      position: sticky;
+      top: 5rem;
+    }
+  }
+</style>
+
+<script>
+  import {
+    bankFromClabe,
+    brandLabel,
+    detectBrand,
+    detectKind,
+    generateReference,
+    generateTrackingKey,
+    groupDigits,
+    luhn,
+    clabeValid,
+    digitsOnly,
+    makeSampleCard,
+    makeSampleClabe,
+    maskDigits,
+  } from "../../lib/cards";
+  import { banks, EN_CREDIT_BANK, type Bank } from "../../config/banks";
+  import { add as addRecipient, list as listRecipients, remove as removeRecipient } from "../../lib/recipients";
+  import { charge, disponible, getState, subscribe } from "../../lib/account";
+  import { openConfirm } from "../../lib/confirm";
+  import { setReceipt } from "../../lib/receipt";
+  import { transferConfig, ownAccount } from "../../config/product";
+  import { formatMXN } from "../../lib/format";
+  import { isWideContainer } from "../../lib/layout";
+  import { showSnackbar } from "../../lib/snackbar";
+  import { initRipple } from "../../lib/ripple";
+
+  initRipple();
+
+  const root = document.querySelector<HTMLElement>('[data-screen="transferir"]');
+  const appScreen = document.querySelector<HTMLElement>(".app-screen");
+  const sheet = document.querySelector<HTMLElement>("[data-bank-sheet]");
+  const sheetListbox = document.querySelector<HTMLElement>("[data-bank-sheet-listbox]");
+
+  const numberInput = root?.querySelector<HTMLInputElement>("[data-number]");
+  const numberHint = root?.querySelector<HTMLElement>("[data-number-hint]");
+  const numberError = root?.querySelector<HTMLElement>("[data-number-error]");
+  const holderInput = root?.querySelector<HTMLInputElement>("[data-holder]");
+  const holderError = root?.querySelector<HTMLElement>("[data-holder-error]");
+  const bankInput = root?.querySelector<HTMLInputElement>("[data-bank-input]");
+  const bankListbox = root?.querySelector<HTMLElement>("[data-bank-listbox]");
+  const bankHint = root?.querySelector<HTMLElement>("[data-bank-hint]");
+  const bankError = root?.querySelector<HTMLElement>("[data-bank-error]");
+  const amountInput = root?.querySelector<HTMLInputElement>("[data-amount]");
+  const amountError = root?.querySelector<HTMLElement>("[data-amount-error]");
+  const availableEl = root?.querySelector<HTMLElement>("[data-available]");
+  const comisionEl = root?.querySelector<HTMLElement>("[data-comision]");
+  const conceptInput = root?.querySelector<HTMLInputElement>("[data-concept]");
+  const conceptError = root?.querySelector<HTMLElement>("[data-concept-error]");
+  const conceptCount = root?.querySelector<HTMLElement>("[data-concept-count]");
+  const referenceInput = root?.querySelector<HTMLInputElement>("[data-reference]");
+  const saveInput = root?.querySelector<HTMLInputElement>("[data-save]");
+  const aliasWrap = root?.querySelector<HTMLElement>("[data-alias-wrap]");
+  const aliasInput = root?.querySelector<HTMLInputElement>("[data-alias]");
+  const sampleBtn = root?.querySelector<HTMLButtonElement>("[data-sample]");
+  const continueBtn = root?.querySelector<HTMLButtonElement>("[data-continue]");
+  const recipientsWrap = root?.querySelector<HTMLElement>("[data-recipients]");
+  const recipientsEmpty = root?.querySelector<HTMLElement>("[data-recipients-empty]");
+  const tabs = Array.from(root?.querySelectorAll<HTMLButtonElement>("[data-mode]") ?? []);
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const comision = transferConfig.comision;
+
+  let mode: "same" | "other" = "same";
+  let selectedBank: Bank | null = null;
+  let bankOpen = false;
+  let activeIndex = 0;
+  let filtered: Bank[] = banks;
+  let detectedByClabe = false;
+  let reference = generateReference();
+
+  const setPreview = (selector: string, text: string) => {
+    const el = root?.querySelector<HTMLElement>(selector);
+    if (!el || el.textContent === text) return;
+    if (reduce) {
+      el.textContent = text;
+      return;
+    }
+    el.style.opacity = "0";
+    window.setTimeout(() => {
+      el.textContent = text;
+      el.style.opacity = "";
+    }, 120);
+  };
+
+  const currentKind = () => {
+    const digits = numberInput?.value.replace(/\D/g, "") ?? "";
+    if (mode === "same") return digits.length === 10 ? "cuenta" : "invalido";
+    return detectKind(digits);
+  };
+
+  const updatePreview = () => {
+    const digits = digitsOnly(numberInput?.value ?? "");
+    const holder = (holderInput?.value ?? "").trim();
+    const concept = (conceptInput?.value ?? "").trim();
+
+    setPreview("[data-rc-holder]", holder ? holder.toUpperCase() : "NOMBRE DEL TITULAR");
+    setPreview("[data-rc-bank]", selectedBank ? selectedBank.name.toUpperCase() : "BANCO");
+    setPreview("[data-rc-concept]", concept ? concept.toUpperCase() : "");
+
+    if (mode === "same") {
+      setPreview("[data-rc-kind]", "Cuenta EN CREDIT");
+      setPreview("[data-rc-brand]", "EN CREDIT");
+    } else {
+      const kind = digits.length === 18 ? "clabe" : "tarjeta";
+      setPreview("[data-rc-kind]", kind === "clabe" ? "CLABE" : "Tarjeta");
+      setPreview("[data-rc-brand]", kind === "clabe" ? "Transferencia" : brandLabel(detectBrand(digits)));
+    }
+
+    const masked = digits.length >= 4 ? `•••• •••• •••• ${digits.slice(-4)}` : "•••• •••• •••• ••••";
+    setPreview("[data-rc-number]", groupDigits(masked));
+  };
+
+  // --- Validación ---
+  const validateNumber = (): boolean => {
+    const digits = digitsOnly(numberInput?.value ?? "");
+    let error = "";
+    if (mode === "same") {
+      if (digits.length !== 10) error = "La cuenta debe tener 10 dígitos.";
+      else if (digits === ownAccount.numero) error = "No puedes transferir a tu propia cuenta.";
+    } else if (digits.length === 0) {
+      error = "";
+    } else if (digits.length === 15 || digits.length === 16) {
+      if (!luhn(digits)) error = "Número de tarjeta inválido.";
+    } else if (digits.length === 18) {
+      if (!clabeValid(digits)) error = "CLABE inválida.";
+    } else {
+      error = "Ingresa una tarjeta (15–16) o CLABE (18) válidas.";
+    }
+
+    if (numberError) {
+      numberError.hidden = !error;
+      numberError.textContent = error;
+    }
+    numberInput?.setAttribute("aria-invalid", String(!!error));
+    return !error && digits.length > 0;
+  };
+
+  const validateHolder = (): boolean => {
+    const value = (holderInput?.value ?? "").trim();
+    if (holderError) holderError.hidden = value.length > 0;
+    holderInput?.setAttribute("aria-invalid", String(value.length === 0));
+    return value.length > 0;
+  };
+
+  const validateBank = (): boolean => {
+    if (bankError) bankError.hidden = !!selectedBank;
+    bankInput?.setAttribute("aria-invalid", String(!selectedBank));
+    return !!selectedBank;
+  };
+
+  const validateAmount = (): boolean => {
+    const amount = Number(amountInput?.value ?? 0);
+    let error = "";
+    if (!Number.isFinite(amount) || amount <= 0) error = "Ingresa un monto mayor a $1.";
+    else if (amount + comision > disponible()) error = "Excede tu crédito disponible.";
+    if (amountError) {
+      amountError.hidden = !error;
+      amountError.textContent = error;
+    }
+    amountInput?.setAttribute("aria-invalid", String(!!error));
+    return !error;
+  };
+
+  const validateConcept = (): boolean => {
+    const value = (conceptInput?.value ?? "").trim();
+    if (conceptError) {
+      conceptError.hidden = value.length > 0;
+      conceptError.textContent = "Ingresa un concepto.";
+    }
+    conceptInput?.setAttribute("aria-invalid", String(value.length === 0));
+    return value.length > 0;
+  };
+
+  const syncDisabled = () => {
+    const frozen = getState().frozen;
+    [numberInput, holderInput, amountInput, conceptInput, saveInput, sampleBtn].forEach((el) => {
+      if (el) (el as HTMLInputElement).disabled = frozen;
+    });
+    if (aliasInput) aliasInput.disabled = frozen;
+    tabs.forEach((tab) => (tab.disabled = frozen));
+    if (bankInput) bankInput.disabled = frozen || mode === "same";
+  };
+
+  const validateAll = (): boolean => {
+    syncDisabled();
+    const ok =
+      validateNumber() && validateHolder() && validateBank() && validateAmount() && validateConcept();
+    const frozen = getState().frozen;
+    if (continueBtn) continueBtn.disabled = !ok || frozen;
+    return ok && !frozen;
+  };
+
+  const refreshAvailable = () => {
+    if (availableEl) availableEl.textContent = `Disponible: ${formatMXN(disponible())}`;
+    if (comisionEl) comisionEl.textContent = comision > 0 ? `Comisión: ${formatMXN(comision, 2)}` : "";
+  };
+
+  // --- Banco (combobox) ---
+  const renderOptions = (container: HTMLElement | null, onPick: (bank: Bank) => void) => {
+    if (!container) return;
+    container.replaceChildren(
+      ...filtered.map((bank, index) => {
+        const li = document.createElement("li");
+        li.id = `${container.id}-opt-${index}`;
+        li.setAttribute("role", "option");
+        li.setAttribute("aria-selected", String(index === activeIndex));
+        li.className = `flex min-h-11 cursor-pointer items-center rounded-lg px-3 py-2 text-sm text-ink ${
+          index === activeIndex ? "bg-accent/10" : ""
+        }`;
+        li.textContent = bank.name;
+        li.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          onPick(bank);
+        });
+        return li;
+      })
+    );
+  };
+
+  const activeOptionId = (): string => {
+    const prefix = bankOpen && isWideContainer(appScreen) ? "tr-bank-listbox" : "tr-bank-sheet-listbox";
+    return `${prefix}-opt-${activeIndex}`;
+  };
+
+  const syncActiveDescendant = () => {
+    if (bankInput) bankInput.setAttribute("aria-activedescendant", bankOpen ? activeOptionId() : "");
+  };
+
+  const openBankList = () => {
+    if (mode === "same") return;
+    filtered = banks.filter((bank) =>
+      bank.name.toLowerCase().includes((bankInput?.value ?? "").toLowerCase().trim())
+    );
+    activeIndex = 0;
+    bankOpen = true;
+
+    if (isWideContainer(appScreen)) {
+      if (sheet) sheet.hidden = true;
+      if (bankListbox) bankListbox.hidden = false;
+      bankInput?.setAttribute("aria-controls", "tr-bank-listbox");
+      renderOptions(bankListbox, pickBank);
+    } else {
+      if (bankListbox) bankListbox.hidden = true;
+      if (sheet) sheet.hidden = false;
+      sheetListbox?.setAttribute("id", "tr-bank-sheet-listbox");
+      bankInput?.setAttribute("aria-controls", "tr-bank-sheet-listbox");
+      renderOptions(sheetListbox, pickBank);
+    }
+    bankInput?.setAttribute("aria-expanded", "true");
+    syncActiveDescendant();
+  };
+
+  const closeBankList = () => {
+    bankOpen = false;
+    if (bankListbox) bankListbox.hidden = true;
+    if (sheet) sheet.hidden = true;
+    bankInput?.setAttribute("aria-expanded", "false");
+    syncActiveDescendant();
+  };
+
+  const pickBank = (bank: Bank) => {
+    selectedBank = bank;
+    detectedByClabe = false;
+    if (bankInput) bankInput.value = bank.name;
+    if (bankHint) bankHint.hidden = true;
+    closeBankList();
+    validateAll();
+    updatePreview();
+  };
+
+  const setBankFromClabe = (digits: string) => {
+    const bank = bankFromClabe(digits);
+    if (bank) {
+      selectedBank = bank;
+      detectedByClabe = true;
+      if (bankInput) bankInput.value = bank.name;
+      if (bankHint) bankHint.hidden = false;
+    }
+  };
+
+  // --- Referencia y formularios ---
+  const regenerateReference = () => {
+    reference = generateReference();
+    if (referenceInput) referenceInput.value = reference;
+  };
+
+  const setMode = (next: "same" | "other") => {
+    mode = next;
+    tabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.mode === next)));
+    closeBankList();
+    detectedByClabe = false;
+
+    if (next === "same") {
+      selectedBank = EN_CREDIT_BANK;
+      if (bankInput) {
+        bankInput.value = EN_CREDIT_BANK.name;
+        bankInput.disabled = true;
+      }
+      if (bankHint) bankHint.hidden = true;
+      if (numberInput) numberInput.value = "";
+      if (numberHint) numberHint.textContent = "Cuenta de 10 dígitos.";
+    } else {
+      if (bankInput) {
+        bankInput.disabled = false;
+        bankInput.value = "";
+      }
+      selectedBank = null;
+      if (bankHint) bankHint.hidden = true;
+      if (numberHint) numberHint.textContent = "Tarjeta (15–16) o CLABE (18) válidas.";
+    }
+    validateAll();
+    updatePreview();
+  };
+
+  numberInput?.addEventListener("input", () => {
+    const max = mode === "same" ? 10 : 18;
+    const digits = digitsOnly(numberInput.value).slice(0, max);
+    numberInput.value = groupDigits(digits);
+    if (mode === "other") {
+      if (digits.length === 18 && clabeValid(digits)) setBankFromClabe(digits);
+      else if (digits.length < 18 && detectedByClabe) {
+        detectedByClabe = false;
+        if (bankHint) bankHint.hidden = true;
+      }
+    }
+    validateNumber();
+    updatePreview();
+    validateAll();
+  });
+
+  numberInput?.addEventListener("blur", () => {
+    validateNumber();
+    validateAll();
+  });
+
+  holderInput?.addEventListener("input", () => {
+    validateHolder();
+    updatePreview();
+    validateAll();
+  });
+
+  conceptInput?.addEventListener("input", () => {
+    if (conceptCount) conceptCount.textContent = `${conceptInput.value.length}/40`;
+    validateConcept();
+    updatePreview();
+    validateAll();
+  });
+
+  amountInput?.addEventListener("input", () => {
+    validateAmount();
+    validateAll();
+  });
+
+  saveInput?.addEventListener("change", () => {
+    if (aliasWrap) aliasWrap.hidden = !saveInput.checked;
+    if (saveInput.checked) aliasInput?.focus();
+  });
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => setMode(tab.dataset.mode as "same" | "other"));
+  });
+
+  // --- Combobox de banco ---
+  bankInput?.addEventListener("focus", () => {
+    if (mode === "other") openBankList();
+  });
+  bankInput?.addEventListener("input", () => {
+    detectedByClabe = false;
+    if (bankHint) bankHint.hidden = true;
+    selectedBank = null;
+    if (mode === "other") openBankList();
+    validateAll();
+  });
+  bankInput?.addEventListener("keydown", (event) => {
+    if (mode !== "other") return;
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!bankOpen) openBankList();
+      const delta = event.key === "ArrowDown" ? 1 : -1;
+      activeIndex = Math.min(filtered.length - 1, Math.max(0, activeIndex + delta));
+      const container = isWideContainer(appScreen) ? bankListbox : sheetListbox;
+      renderOptions(container, pickBank);
+      syncActiveDescendant();
+    } else if (event.key === "Enter") {
+      if (bankOpen && filtered[activeIndex]) {
+        event.preventDefault();
+        pickBank(filtered[activeIndex]);
+      }
+    } else if (event.key === "Escape") {
+      if (bankOpen) {
+        event.preventDefault();
+        closeBankList();
+      }
+    }
+  });
+
+  document.querySelector("[data-bank-sheet-backdrop]")?.addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) {
+      closeBankList();
+      bankInput?.focus();
+    }
+  });
+
+  // --- Datos de ejemplo ---
+  sampleBtn?.addEventListener("click", () => {
+    setMode("other");
+    const useClabe = Math.random() < 0.5;
+    if (useClabe) {
+      const clabe = makeSampleClabe("012");
+      if (numberInput) numberInput.value = groupDigits(clabe);
+      if (numberHint) numberHint.textContent = "CLABE de ejemplo.";
+    } else {
+      const card = makeSampleCard("mastercard");
+      if (numberInput) numberInput.value = groupDigits(card);
+      if (numberHint) numberHint.textContent = "Tarjeta de ejemplo.";
+    }
+    numberInput?.dispatchEvent(new Event("input"));
+    if (holderInput) holderInput.value = "María García";
+    if (conceptInput) conceptInput.value = "Pago de proyecto";
+    if (amountInput) amountInput.value = "500";
+    if (conceptCount) conceptCount.textContent = `${conceptInput?.value.length ?? 0}/40`;
+    validateAll();
+    updatePreview();
+  });
+
+  // --- Destinatarios guardados ---
+  const fillFromRecipient = (recipient: { tipo: string; numero: string; banco: string; titular: string }) => {
+    if (recipient.tipo === "cuenta") setMode("same");
+    else setMode("other");
+    if (numberInput) numberInput.value = groupDigits(recipient.numero);
+    numberInput?.dispatchEvent(new Event("input"));
+    if (holderInput) holderInput.value = recipient.titular;
+    selectedBank = banks.find((bank) => bank.name === recipient.banco) ?? selectedBank;
+    if (bankInput && selectedBank) bankInput.value = selectedBank.name;
+    validateAll();
+    updatePreview();
+  };
+
+  const renderRecipients = () => {
+    const items = listRecipients();
+    if (recipientsEmpty) recipientsEmpty.hidden = items.length > 0;
+    recipientsWrap?.replaceChildren(
+      ...items.map((recipient) => {
+        const chip = document.createElement("div");
+        chip.className =
+          "flex shrink-0 items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2";
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "flex min-h-11 flex-col items-start text-left";
+        const alias = document.createElement("span");
+        alias.className = "font-roboto text-sm font-medium text-ink";
+        alias.textContent = recipient.alias;
+        const meta = document.createElement("span");
+        meta.className = "text-xs text-muted";
+        meta.textContent = `••${recipient.numero.slice(-4)} · ${recipient.banco}`;
+        button.append(alias, meta);
+        button.addEventListener("click", () => fillFromRecipient(recipient));
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.setAttribute("aria-label", `Eliminar ${recipient.alias}`);
+        del.className = "grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-bg";
+        del.innerHTML =
+          '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+        del.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          const ok = await openConfirm({
+            title: "Eliminar destinatario",
+            rows: [{ label: "Alias", value: recipient.alias }],
+            confirmLabel: "Eliminar",
+          });
+          if (ok) {
+            removeRecipient(recipient.id);
+            renderRecipients();
+          }
+        });
+
+        chip.append(button, del);
+        return chip;
+      })
+    );
+  };
+
+  // --- Continuar ---
+  continueBtn?.addEventListener("click", async () => {
+    if (!validateAll()) return;
+    const digits = digitsOnly(numberInput?.value ?? "");
+    const holder = (holderInput?.value ?? "").trim();
+    const concept = (conceptInput?.value ?? "").trim();
+    const amount = Number(amountInput?.value ?? 0);
+    const bank = selectedBank;
+    if (!bank) return;
+
+    const kind = currentKind();
+    const kindLabel = kind === "tarjeta" ? "Tarjeta" : kind === "clabe" ? "CLABE" : "Cuenta";
+    const total = amount + comision;
+    const trackingKey = generateTrackingKey();
+
+    const ok = await openConfirm({
+      title: "Confirmar transferencia",
+      rows: [
+        { label: "Destinatario", value: holder },
+        { label: "Banco", value: bank.name },
+        { label: kindLabel, value: maskDigits(digits) },
+        { label: "Monto", value: formatMXN(amount, 2) },
+        { label: "Comisión", value: formatMXN(comision, 2) },
+        { label: "Concepto", value: concept },
+        { label: "Referencia", value: reference },
+        { label: "Total a cargar", value: formatMXN(total, 2) },
+      ],
+      confirmLabel: `Transferir ${formatMXN(total, 2)}`,
+    });
+    if (!ok) return;
+
+    const detalles = [
+      { label: "Destinatario", value: holder },
+      { label: "Banco", value: bank.name },
+      { label: kindLabel, value: maskDigits(digits) },
+      { label: "Referencia", value: reference },
+      { label: "Clave de rastreo", value: trackingKey },
+      { label: "Comisión", value: formatMXN(comision, 2) },
+    ];
+
+    const result = charge(total, concept, "transferencia", detalles);
+    if (!result.ok || !result.movement) {
+      showSnackbar(
+        result.error === "frozen" ? "Tu tarjeta está congelada." : "Excede tu crédito disponible."
+      );
+      return;
+    }
+
+    if (saveInput?.checked) {
+      addRecipient({
+        tipo: kind,
+        numero: digits,
+        banco: bank.name,
+        alias: (aliasInput?.value ?? "").trim() || `${bank.name} ••${digits.slice(-4)}`,
+        titular: holder,
+      });
+    }
+
+    setReceipt({
+      tipo: "Transferencia",
+      monto: result.movement.monto,
+      concepto: result.movement.concepto,
+      fecha: result.movement.fecha,
+      folio: result.movement.folio,
+      detalles,
+    });
+    window.location.replace("#/comprobante");
+  });
+
+  // --- Cambio angosto/ancho: cierra y reenfoca ---
+  const observer = new ResizeObserver(() => {
+    if (bankOpen) {
+      closeBankList();
+      bankInput?.focus();
+    }
+  });
+  if (appScreen) observer.observe(appScreen);
+
+  subscribe(() => {
+    refreshAvailable();
+    validateAll();
+  });
+
+  // --- Init ---
+  renderRecipients();
+  regenerateReference();
+  refreshAvailable();
+  setMode("same");
+</script>

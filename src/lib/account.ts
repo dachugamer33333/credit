@@ -2,6 +2,11 @@ import { credit, movements as seedMovements } from "../config/product.ts";
 import { getMovementDate } from "./format.ts";
 import { folio8 } from "./payments.ts";
 
+export interface MovementDetail {
+  label: string;
+  value: string;
+}
+
 export interface AccountMovement {
   id: string;
   tipo: string;
@@ -9,6 +14,7 @@ export interface AccountMovement {
   monto: number;
   fecha: string;
   folio: string;
+  detalles?: MovementDetail[];
 }
 
 export interface AccountState {
@@ -118,7 +124,12 @@ export const subscribe = (cb: (snapshot: AccountState) => void): (() => void) =>
 
 export const disponible = (): number => credit.limit - load().usado;
 
-export const charge = (monto: number, concepto: string, tipo: string): ChargeResult => {
+export const charge = (
+  monto: number,
+  concepto: string,
+  tipo: string,
+  detalles?: MovementDetail[]
+): ChargeResult => {
   const s = load();
   if (s.frozen) return { ok: false, error: "frozen" };
   if (!Number.isFinite(monto) || monto <= 0 || monto > disponible()) {
@@ -132,6 +143,7 @@ export const charge = (monto: number, concepto: string, tipo: string): ChargeRes
     monto,
     fecha: new Date().toISOString(),
     folio: folio8(),
+    ...(detalles ? { detalles } : {}),
   };
   s.movimientos.unshift(movement);
   commit();

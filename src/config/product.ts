@@ -46,6 +46,17 @@ export const virtualCard = {
   expiry: "12/29",
 } as const;
 
+// Parámetros de transferencia (demostración).
+export const transferConfig = {
+  comision: 0,
+} as const;
+
+// Cuenta propia del usuario (demostración). Rechaza transferencias a sí misma.
+export const ownAccount = {
+  numero: "1234567890",
+  banco: "EN CREDIT",
+} as const;
+
 // Movimientos recientes ficticios (relativos a hoy para que no envejezcan).
 export const movements: Movement[] = [
   {
@@ -129,7 +140,7 @@ export const terms: ConditionRow[] = [
 ];
 
 export const privacyExampleText =
-  "Este aviso es un texto de ejemplo para el prototipo. El nombre que escribes de forma opcional se guarda únicamente en el almacenamiento local de este dispositivo y no se envía a ningún servidor. No se solicitan permisos del navegador ni se recopilan datos de ubicación.";
+  "Este aviso es un texto de ejemplo para el prototipo. El nombre que escribes de forma opcional y los destinatarios guardados se almacenan únicamente en el almacenamiento local de este dispositivo y no se envían a ningún servidor. No se solicitan permisos del navegador ni se recopilan datos de ubicación.";
 
 export const contractReca = {
   title: "Contrato de adhesión (RECA)",

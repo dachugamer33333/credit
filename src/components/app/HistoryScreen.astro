@@ -38,6 +38,7 @@ import DemoTag from "./DemoTag.astro";
     compra: "Compra",
     servicio: "Pago de servicio",
     recarga: "Recarga de tiempo aire",
+    transferencia: "Transferencia",
   };
 
   const tipoLabel = (tipo: string): string => TIPO_LABEL[tipo] ?? "Operación";
@@ -49,6 +50,7 @@ import DemoTag from "./DemoTag.astro";
       concepto: movement.concepto,
       fecha: movement.fecha,
       folio: movement.folio,
+      ...(movement.detalles ? { detalles: movement.detalles } : {}),
     });
     window.location.hash = "#/comprobante";
   };

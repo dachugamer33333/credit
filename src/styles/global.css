@@ -40,6 +40,9 @@
   --z-snackbar: 60;
   --z-sheet: 80;
   --z-biometric: 100;
+
+  /* Breakpoint de contenedor compartido con src/lib/layout.ts (APP_BREAKPOINT). */
+  --app-breakpoint: 640;
 }
 
 /* ============================================================
