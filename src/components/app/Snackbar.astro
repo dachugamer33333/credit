@@ -1,0 +1,50 @@
+<div
+  data-snackbar
+  class="snackbar"
+  role="status"
+  aria-live="polite"
+  aria-hidden="true"
+>
+  <span data-snackbar-text></span>
+</div>
+
+<style>
+  .snackbar {
+    position: absolute;
+    left: 50%;
+    bottom: 7rem;
+    z-index: 40;
+    max-width: min(22rem, calc(100% - 2rem));
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: #1f2937;
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 12px 30px -12px rgb(15 23 42 / 0.5);
+    opacity: 0;
+    transform: translate(-50%, 0.75rem);
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .snackbar.snackbar-show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  @container app (min-width: 600px) {
+    .snackbar {
+      bottom: 3.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .snackbar {
+      transition: none;
+    }
+  }
+</style>

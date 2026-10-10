@@ -1,4 +1,6 @@
 ---
+import { APP_PATH } from "../config";
+
 const productos = [
   {
     nombre: "Tarjeta Semilla",
@@ -92,7 +94,7 @@ const productos = [
               </ul>
 
               <a
-                href="#app"
+                href={APP_PATH}
                 class:list={[
                   "mt-8 inline-flex min-h-11 items-center justify-center rounded-full px-6 text-sm font-semibold transition duration-300",
                   p.destacado

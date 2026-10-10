@@ -1,0 +1,165 @@
+---
+import TopBar from "./TopBar.astro";
+import DemoTag from "./DemoTag.astro";
+import {
+  cat,
+  contractReca,
+  fees,
+  interestRates,
+  privacyExampleText,
+  recas,
+  terms,
+} from "../../config/product";
+
+const sections = [
+  { id: "tasas", title: "Tasas de interés aplicables", kind: "rows", rows: interestRates },
+  { id: "cat", title: "CAT (Costo Anual Total)", kind: "cat" },
+  { id: "comisiones", title: "Comisiones y otros cargos", kind: "rows", rows: fees },
+  { id: "plazos", title: "Plazos, pagos y condiciones del producto", kind: "rows", rows: terms },
+  {
+    id: "privacidad",
+    title: "Aviso de privacidad y tratamiento de datos personales",
+    kind: "privacy",
+  },
+  { id: "reca", title: "Contrato de adhesión (RECA)", kind: "registry", data: contractReca },
+  { id: "recas", title: "RECAS", kind: "registry", data: recas },
+] as const;
+---
+
+<section data-screen="avisos" hidden class="app-section" aria-hidden="true">
+  <TopBar
+    title="Avisos y privacidad"
+    backHref="#/perfil"
+    backLabel="Volver a perfil"
+    homeHref="#/inicio"
+  />
+
+  <div class="mx-auto w-full max-w-[560px] px-4 py-5">
+    <div class="flex flex-col gap-2" data-accordion>
+      {
+        sections.map((section, index) => (
+          <div class="overflow-hidden rounded-2xl border border-border bg-surface">
+            <h2>
+              <button
+                type="button"
+                id={`acc-trigger-${section.id}`}
+                data-acc-trigger
+                aria-expanded="false"
+                aria-controls={`acc-panel-${section.id}`}
+                class="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition duration-200 hover:bg-bg"
+              >
+                <span class="font-roboto text-sm font-medium text-ink">
+                  {index + 1}. {section.title}
+                </span>
+                <svg
+                  class="h-4 w-4 shrink-0 text-muted transition-transform duration-200"
+                  data-acc-icon
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+            </h2>
+
+            <div
+              id={`acc-panel-${section.id}`}
+              role="region"
+              aria-labelledby={`acc-trigger-${section.id}`}
+              data-acc-panel
+              hidden
+              class="border-t border-border px-4 py-4 text-sm text-muted"
+            >
+              {section.kind === "rows" && (
+                <dl class="flex flex-col gap-2.5">
+                  {section.rows.map((row) => (
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">{row.label}</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {row.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+
+              {section.kind === "cat" && (
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-start justify-between gap-3">
+                    <span class="text-muted">CAT promedio</span>
+                    <span class="shrink-0 text-right font-roboto font-medium text-ink">
+                      {cat.value}
+                    </span>
+                  </div>
+                  <div>
+                    <DemoTag />
+                  </div>
+                  <p class="text-xs text-muted">{cat.note}</p>
+                </div>
+              )}
+
+              {section.kind === "privacy" && (
+                <div class="flex flex-col gap-2.5">
+                  <div>
+                    <DemoTag label="Texto de ejemplo para el prototipo" />
+                  </div>
+                  <p class="leading-relaxed">{privacyExampleText}</p>
+                </div>
+              )}
+
+              {section.kind === "registry" && (
+                <div class="flex flex-col gap-2.5">
+                  <p class="leading-relaxed">{section.data.description}</p>
+                  <p>
+                    <span class="text-muted">Número de registro:</span>{" "}
+                    <span class="font-roboto font-medium text-ink">{section.data.registry}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  const triggers = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("[data-acc-trigger]")
+  );
+
+  const panelFor = (trigger: HTMLButtonElement): HTMLElement | null => {
+    const id = trigger.getAttribute("aria-controls");
+    return id ? document.getElementById(id) : null;
+  };
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const isOpen = trigger.getAttribute("aria-expanded") === "true";
+
+      triggers.forEach((other) => {
+        other.setAttribute("aria-expanded", "false");
+        const panel = panelFor(other);
+        if (panel) panel.hidden = true;
+      });
+
+      if (!isOpen) {
+        trigger.setAttribute("aria-expanded", "true");
+        const panel = panelFor(trigger);
+        if (panel) panel.hidden = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  [data-acc-trigger][aria-expanded="true"] [data-acc-icon] {
+    transform: rotate(180deg);
+  }
+</style>

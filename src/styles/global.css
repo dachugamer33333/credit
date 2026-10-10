@@ -28,6 +28,7 @@
   /* Tipografías */
   --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-roboto: "Roboto", ui-sans-serif, system-ui, sans-serif;
   --font-kanji: "Noto Serif JP", ui-serif, serif;
 }
 
@@ -91,4 +92,46 @@
     transparent 0
   );
   background-size: 4px 4px;
+}
+
+/* ============================================================
+   App — transiciones y ripple (Material 3)
+   ============================================================ */
+.screen-enter {
+  animation: screen-in 200ms ease-out both;
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ripple-wave {
+  position: absolute;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.18;
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple 600ms ease-out;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter,
+  .ripple-wave {
+    animation: none !important;
+  }
 }

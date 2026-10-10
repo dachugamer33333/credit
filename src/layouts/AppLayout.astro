@@ -1,0 +1,211 @@
+---
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/syne/700.css";
+import "@fontsource/syne/800.css";
+import "@fontsource/noto-serif-jp/700.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import "../styles/global.css";
+import QRCode from "qrcode";
+import { APP_PUBLIC_URL } from "../config";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "EN CREDIT — App",
+  description = "App de EN CREDIT. Prototipo académico, no es una oferta de crédito.",
+} = Astro.props;
+
+const qrSvg = await QRCode.toString(APP_PUBLIC_URL, {
+  type: "svg",
+  margin: 1,
+  width: 240,
+  color: { dark: "#0f172a", light: "#ffffff" },
+});
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F6F7F9" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <script is:inline>
+      (function () {
+        try {
+          var touch = window.matchMedia("(pointer: coarse)").matches;
+          document.documentElement.dataset.device = touch ? "touch" : "desktop";
+        } catch (e) {
+          document.documentElement.dataset.device = "touch";
+        }
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen w-full overflow-x-hidden bg-bg font-roboto">
+    <div class="app-view">
+      <div class="app-stage">
+        <div class="app-device">
+          <div class="app-screen">
+            <slot />
+          </div>
+        </div>
+      </div>
+
+      <aside
+        class="app-panel"
+        aria-label="Abrir la demo en el teléfono"
+      >
+        <h2 class="font-display text-lg font-bold text-ink">Diseñada para celular</h2>
+        <p class="max-w-xs text-sm leading-relaxed text-muted">
+          Escanea el código para abrir la demo en tu teléfono.
+        </p>
+        <div
+          class="app-qr rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]"
+          role="img"
+          aria-label={`Código QR para abrir ${APP_PUBLIC_URL}`}
+          set:html={qrSvg}
+        >
+        </div>
+        <span class="text-xs font-medium tracking-wide text-muted">creditenapp.store/app</span>
+      </aside>
+    </div>
+
+    <script>
+      const root = document.documentElement;
+      const DEVICE_W = 390;
+      const DEVICE_H = 844;
+      const PADDING = 64;
+
+      const applyScale = () => {
+        if (root.dataset.device !== "desktop") {
+          root.style.removeProperty("--app-scale");
+          return;
+        }
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const isWide = w >= 900;
+        const availH = h - PADDING;
+        const availW = isWide ? w - 400 - PADDING : w - 48;
+        const scale = Math.max(0.4, Math.min(1, availH / DEVICE_H, availW / DEVICE_W));
+        root.style.setProperty("--app-scale", String(scale));
+      };
+
+      applyScale();
+      window.addEventListener("resize", applyScale, { passive: true });
+    </script>
+
+    <style>
+      .app-view {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        width: 100%;
+      }
+
+      .app-stage {
+        flex: 1 1 auto;
+        display: flex;
+        min-height: 0;
+      }
+
+      .app-device {
+        flex: 1 1 auto;
+        display: flex;
+        min-width: 0;
+      }
+
+      .app-screen {
+        position: relative;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+        background: var(--color-bg);
+        container-type: inline-size;
+        container-name: app;
+      }
+
+      .app-panel {
+        display: none;
+      }
+
+      .app-qr svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* Escritorio (no táctil): app dentro de un marco de celular centrado. */
+      html[data-device="desktop"] .app-view {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+
+      html[data-device="desktop"] .app-stage {
+        flex: 0 0 auto;
+        width: calc(390px * var(--app-scale, 1));
+        height: calc(844px * var(--app-scale, 1));
+      }
+
+      html[data-device="desktop"] .app-device {
+        flex: 0 0 auto;
+        width: 390px;
+        height: 844px;
+        padding: 0.75rem;
+        border-radius: 2.75rem;
+        border: 1px solid rgb(255 255 255 / 0.15);
+        outline: 1px solid rgb(255 255 255 / 0.05);
+        background: linear-gradient(160deg, #1b1e25, #06070b);
+        box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.95);
+        transform: scale(var(--app-scale, 1));
+        transform-origin: top left;
+      }
+
+      html[data-device="desktop"] .app-screen {
+        border-radius: 2.15rem;
+        overflow: hidden;
+        background: var(--color-bg);
+      }
+
+      html[data-device="desktop"] .app-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        max-width: 22rem;
+        text-align: center;
+      }
+
+      @media (min-width: 900px) {
+        html[data-device="desktop"] .app-view {
+          flex-direction: row;
+          gap: 3rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </body>
+</html>

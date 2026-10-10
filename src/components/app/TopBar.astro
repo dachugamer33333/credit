@@ -1,0 +1,77 @@
+---
+interface Props {
+  title?: string;
+  brand?: boolean;
+  backHref?: string;
+  backLabel?: string;
+  homeHref?: string;
+}
+
+const { title = "", brand = false, backHref, backLabel = "Volver", homeHref } = Astro.props;
+---
+
+<header class="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
+  <div class="mx-auto flex min-h-14 w-full max-w-[560px] items-center gap-1 px-2">
+    {
+      backHref && (
+        <a
+          href={backHref}
+          aria-label={backLabel}
+          class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink transition duration-200 hover:bg-bg"
+        >
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </a>
+      )
+    }
+
+    {
+      brand ? (
+        <span class="flex min-w-0 flex-1 items-center gap-2.5 px-1 py-2">
+          <span class="font-kanji text-xl leading-none text-ink" aria-hidden="true">
+            縁
+          </span>
+          <span class="flex flex-col gap-1.5">
+            <span
+              data-screen-title
+              tabindex="-1"
+              class="font-display text-sm leading-none tracking-[0.28em] text-ink"
+            >
+              EN CREDIT
+            </span>
+            <span class="tri-line h-[3px] w-full rounded-full" aria-hidden="true"></span>
+          </span>
+        </span>
+      ) : (
+        <h1
+          data-screen-title
+          tabindex="-1"
+          class="min-w-0 flex-1 truncate px-1 font-roboto text-lg font-medium text-ink"
+        >
+          {title}
+        </h1>
+      )
+    }
+
+    {
+      homeHref && (
+        <a
+          href={homeHref}
+          class="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-sm font-medium text-accent transition duration-200 hover:bg-accent/10"
+        >
+          Ir al inicio
+        </a>
+      )
+    }
+  </div>
+</header>

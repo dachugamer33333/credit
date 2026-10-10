@@ -1,4 +1,6 @@
 ---
+import { APP_PATH } from "../config";
+
 const links = [
   { href: "#concepto", label: "Concepto" },
   { href: "#productos", label: "Productos" },
@@ -43,7 +45,7 @@ const links = [
       <!-- CTA + hamburguesa -->
       <div class="flex items-center gap-2">
         <a
-          href="#productos"
+          href={APP_PATH}
           class="hidden h-11 items-center rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-300 hover:bg-accent-hover md:inline-flex"
           >Solicitar Crédito</a
         >
@@ -90,7 +92,7 @@ const links = [
         }
         <li class="pt-2">
           <a
-            href="#productos"
+            href={APP_PATH}
             data-mobile-link
             class="flex min-h-11 items-center justify-center rounded-full bg-accent px-5 text-base font-semibold text-white transition duration-300 hover:bg-accent-hover"
             >Solicitar Crédito</a

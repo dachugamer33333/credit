@@ -1,0 +1,178 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import BottomNav from "../../components/app/BottomNav.astro";
+import Snackbar from "../../components/app/Snackbar.astro";
+import HomeScreen from "../../components/app/HomeScreen.astro";
+import SimulatorScreen from "../../components/app/SimulatorScreen.astro";
+import ProfileScreen from "../../components/app/ProfileScreen.astro";
+import LegalScreen from "../../components/app/LegalScreen.astro";
+---
+
+<AppLayout>
+  <div class="app-shell flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+    <BottomNav />
+
+    <div class="app-content flex min-h-0 min-w-0 flex-1 flex-col">
+      <main data-app-main class="min-h-0 flex-1 overflow-y-auto">
+        <HomeScreen />
+        <SimulatorScreen />
+        <ProfileScreen />
+        <LegalScreen />
+      </main>
+
+      <p
+        class="flex-none border-t border-border bg-surface/90 px-4 py-2 text-center text-[0.7rem] leading-snug text-muted"
+      >
+        Prototipo académico. No es una oferta de crédito.
+      </p>
+    </div>
+
+    <Snackbar />
+  </div>
+
+  <!-- Bottom sheet de nombre (primera visita en táctil / "Cambiar mi nombre") -->
+  <div data-name-sheet hidden>
+    <div class="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="name-sheet-title"
+        class="w-full max-w-md rounded-3xl border border-border bg-surface p-6 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.5)]"
+      >
+        <h2 id="name-sheet-title" class="font-display text-lg font-bold text-ink">
+          ¿Cómo te llamas? (opcional)
+        </h2>
+        <p class="mt-1 text-sm leading-relaxed text-muted">
+          Lo usamos solo para personalizar tu tarjeta en este dispositivo.
+        </p>
+
+        <label class="sr-only" for="name-input">Tu nombre</label>
+        <input
+          id="name-input"
+          data-name-input
+          type="text"
+          maxlength="30"
+          autocomplete="name"
+          enterkeyhint="done"
+          placeholder="Juan Pérez"
+          class="mt-4 min-h-11 w-full rounded-xl border border-border bg-white px-4 py-3 text-base text-ink placeholder:text-muted"
+        />
+
+        <div class="mt-4 flex gap-3">
+          <button
+            type="button"
+            data-name-skip
+            class="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-border px-5 text-sm font-semibold text-ink transition duration-300 hover:bg-slate-100"
+          >
+            Omitir
+          </button>
+          <button
+            type="button"
+            data-name-save
+            class="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-300 hover:bg-accent-hover"
+          >
+            Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<style>
+  .app-content {
+    order: 1;
+  }
+
+  :global([data-app-nav]) {
+    order: 2;
+  }
+
+  @container app (min-width: 600px) {
+    .app-shell {
+      flex-direction: row;
+    }
+
+    :global([data-app-nav]) {
+      order: 1;
+    }
+
+    .app-content {
+      order: 2;
+    }
+  }
+</style>
+
+<script>
+  import { initRouter } from "../../lib/router";
+  import { initRipple } from "../../lib/ripple";
+  import { isTouchDevice } from "../../lib/device";
+  import {
+    DEFAULT_NAME,
+    buildGreeting,
+    getStoredName,
+    getNameForCard,
+    hasStoredName,
+    sanitizeName,
+    setStoredName,
+  } from "../../lib/user";
+
+  initRouter();
+  initRipple();
+
+  const sheet = document.querySelector<HTMLElement>("[data-name-sheet]");
+  const input = document.querySelector<HTMLInputElement>("[data-name-input]");
+
+  const render = (name: string) => {
+    const greeting = document.querySelector("[data-greeting]");
+    greeting?.replaceChildren(document.createTextNode(buildGreeting(name)));
+
+    document.querySelectorAll("[data-card-name]").forEach((el) => {
+      el.textContent = getNameForCard(name);
+    });
+
+    const profileName = document.querySelector("[data-profile-name]");
+    if (profileName) profileName.textContent = name;
+  };
+
+  render(getStoredName());
+
+  const openSheet = () => {
+    if (!sheet) return;
+    if (input) input.value = hasStoredName() ? getStoredName() : "";
+    sheet.hidden = false;
+    requestAnimationFrame(() => input?.focus());
+  };
+
+  const closeSheet = () => {
+    if (sheet) sheet.hidden = true;
+  };
+
+  const saveName = () => {
+    setStoredName(input?.value ?? "");
+    render(getStoredName());
+    closeSheet();
+  };
+
+  if (sheet && input && isTouchDevice() && !hasStoredName()) {
+    sheet.hidden = false;
+    requestAnimationFrame(() => input.focus());
+  }
+
+  document.querySelector("[data-name-save]")?.addEventListener("click", saveName);
+
+  document.querySelector("[data-name-skip]")?.addEventListener("click", () => {
+    setStoredName(DEFAULT_NAME);
+    render(DEFAULT_NAME);
+    closeSheet();
+  });
+
+  input?.addEventListener("keydown", (event) => {
+    if ((event as KeyboardEvent).key === "Enter") saveName();
+  });
+
+  document.addEventListener("click", (event) => {
+    const trigger = (event.target as Element)?.closest("[data-open-name-sheet]");
+    if (trigger) openSheet();
+  });
+</script>
