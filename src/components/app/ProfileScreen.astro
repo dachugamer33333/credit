@@ -2,9 +2,11 @@
 import TopBar from "./TopBar.astro";
 import { demoUser } from "../../config/product";
 import { formatDateEsMx } from "../../lib/format";
+import { DEFAULT_NAME, emailFromName } from "../../lib/user";
 
 const initial = demoUser.name.trim().charAt(0).toUpperCase();
 const memberSince = formatDateEsMx(new Date(`${demoUser.memberSince}T00:00:00`));
+const initialEmail = emailFromName(DEFAULT_NAME);
 ---
 
 <section data-screen="perfil" hidden class="app-section" aria-hidden="true">
@@ -22,7 +24,13 @@ const memberSince = formatDateEsMx(new Date(`${demoUser.memberSince}T00:00:00`))
           <p class="truncate font-roboto text-lg font-medium text-ink" data-profile-name>
             {demoUser.name}
           </p>
-          <p class="truncate text-sm text-muted">{demoUser.email}</p>
+          <p class="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-muted">
+            <span class="truncate" data-profile-email>{initialEmail}</span>
+            <span
+              class="rounded-full bg-bg px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-wide text-muted"
+              >Correo ficticio</span
+            >
+          </p>
         </div>
       </div>
 
@@ -123,6 +131,46 @@ const memberSince = formatDateEsMx(new Date(`${demoUser.memberSince}T00:00:00`))
           </svg>
         </button>
       </li>
+      <li class="border-t border-border">
+        <button
+          type="button"
+          data-logout
+          data-ripple
+          class="relative flex min-h-14 w-full items-center justify-between gap-3 overflow-hidden px-4 py-3 text-left transition duration-200 hover:bg-bg"
+        >
+          <span class="flex items-center gap-3">
+            <span class="grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-600">
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <path d="M16 17l5-5-5-5" />
+                <path d="M21 12H9" />
+              </svg>
+            </span>
+            <span class="font-roboto text-sm font-medium text-ink">Cerrar sesión</span>
+          </span>
+          <svg
+            class="h-4 w-4 shrink-0 text-muted"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
+      </li>
     </ul>
 
     <p class="mt-4 text-center text-xs text-muted">Los datos de este perfil son ficticios.</p>
@@ -131,10 +179,17 @@ const memberSince = formatDateEsMx(new Date(`${demoUser.memberSince}T00:00:00`))
 
 <script>
   import { initRipple } from "../../lib/ripple";
-  import { getStoredName } from "../../lib/user";
+  import { emailFromName, getStoredName } from "../../lib/user";
 
   initRipple();
 
+  const name = getStoredName();
   const nameEl = document.querySelector<HTMLElement>("[data-profile-name]");
-  if (nameEl) nameEl.textContent = getStoredName();
+  const emailEl = document.querySelector<HTMLElement>("[data-profile-email]");
+  if (nameEl) nameEl.textContent = name;
+  if (emailEl) emailEl.textContent = emailFromName(name);
+
+  document.querySelector("[data-logout]")?.addEventListener("click", () => {
+    document.dispatchEvent(new CustomEvent("encredit:lock", { detail: { hash: "#/inicio" } }));
+  });
 </script>

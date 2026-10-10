@@ -6,14 +6,21 @@ import HomeScreen from "../../components/app/HomeScreen.astro";
 import SimulatorScreen from "../../components/app/SimulatorScreen.astro";
 import ProfileScreen from "../../components/app/ProfileScreen.astro";
 import LegalScreen from "../../components/app/LegalScreen.astro";
+import BiometricGate from "../../components/app/BiometricGate.astro";
 ---
 
 <AppLayout>
-  <div class="app-shell flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <div
+    data-app-shell
+    class="app-shell flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+  >
     <BottomNav />
 
     <div class="app-content flex min-h-0 min-w-0 flex-1 flex-col">
-      <main data-app-main class="min-h-0 flex-1 overflow-y-auto">
+      <main
+        data-app-main
+        class="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
         <HomeScreen />
         <SimulatorScreen />
         <ProfileScreen />
@@ -30,9 +37,11 @@ import LegalScreen from "../../components/app/LegalScreen.astro";
     <Snackbar />
   </div>
 
+  <BiometricGate />
+
   <!-- Bottom sheet de nombre (primera visita en táctil / "Cambiar mi nombre") -->
   <div data-name-sheet hidden>
-    <div class="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3">
+    <div class="fixed inset-0 z-[var(--z-sheet)] flex items-end justify-center bg-slate-900/40 p-3">
       <div
         role="dialog"
         aria-modal="true"
@@ -110,6 +119,7 @@ import LegalScreen from "../../components/app/LegalScreen.astro";
   import {
     DEFAULT_NAME,
     buildGreeting,
+    emailFromName,
     getStoredName,
     getNameForCard,
     hasStoredName,
@@ -133,6 +143,9 @@ import LegalScreen from "../../components/app/LegalScreen.astro";
 
     const profileName = document.querySelector("[data-profile-name]");
     if (profileName) profileName.textContent = name;
+
+    const profileEmail = document.querySelector("[data-profile-email]");
+    if (profileEmail) profileEmail.textContent = emailFromName(name);
   };
 
   render(getStoredName());
@@ -154,9 +167,23 @@ import LegalScreen from "../../components/app/LegalScreen.astro";
     closeSheet();
   };
 
-  if (sheet && input && isTouchDevice() && !hasStoredName()) {
+  const firstVisit = sheet && input && isTouchDevice() && !hasStoredName();
+  const gateEl = document.querySelector<HTMLElement>("[data-biometric]");
+  const openFirstVisitSheet = () => {
+    if (!firstVisit || !sheet || !input) return;
     sheet.hidden = false;
     requestAnimationFrame(() => input.focus());
+  };
+
+  if (firstVisit) {
+    // Espera a que el script del gate se ejecute (o a que termine la verificación).
+    window.setTimeout(() => {
+      if (gateEl && !gateEl.hidden) {
+        document.addEventListener("encredit:unlocked", openFirstVisitSheet, { once: true });
+      } else {
+        openFirstVisitSheet();
+      }
+    }, 0);
   }
 
   document.querySelector("[data-name-save]")?.addEventListener("click", saveName);

@@ -10,6 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check:loan": "node scripts/check-loan.ts",
+    "check:user": "node scripts/check-user.ts",
     "astro": "astro"
   },
   "dependencies": {

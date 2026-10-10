@@ -53,3 +53,17 @@ export const buildGreeting = (name: string, date: Date = new Date()): string =>
   `${getGreeting(date)}, ${getFirstName(name)}`;
 
 export const getNameForCard = (name: string): string => name.toUpperCase();
+
+// Correo ficticio derivado del nombre. Función pura.
+export const emailFromName = (name: string): string => {
+  const local = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .join(".")
+    .slice(0, 30);
+  return `${local || "juan.perez"}@ejemplo.mx`;
+};

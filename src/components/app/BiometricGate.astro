@@ -1,0 +1,575 @@
+---
+// Verificación biométrica SIMULADA. Sin cámara, WebAuthn, permisos ni datos.
+---
+
+<div
+  data-biometric
+  class="bio-gate"
+  hidden
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="bio-title"
+>
+  <header class="bio-header">
+    <span class="font-kanji text-2xl leading-none text-ink" aria-hidden="true">縁</span>
+    <span class="flex flex-col gap-1.5">
+      <span class="font-display text-sm leading-none tracking-[0.28em] text-ink">EN CREDIT</span>
+      <span class="tri-line h-[3px] w-full rounded-full" aria-hidden="true"></span>
+    </span>
+  </header>
+
+  <div class="bio-body">
+    <div class="bio-card">
+      <h2 id="bio-title" data-bio-title tabindex="-1" class="font-roboto text-lg font-semibold text-ink">
+        Verifica tu identidad
+      </h2>
+      <p class="mt-1 text-sm text-muted">Acceso seguro a tu cuenta</p>
+
+      <!-- Selector de método -->
+      <div
+        role="radiogroup"
+        aria-label="Método de verificación"
+        class="bio-methods"
+      >
+        <button
+          type="button"
+          role="radio"
+          aria-checked="true"
+          data-method="huella"
+          class="bio-chip"
+        >
+          Huella
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          data-method="rostro"
+          class="bio-chip"
+        >
+          Rostro
+        </button>
+      </div>
+
+      <!-- Escáner -->
+      <div class="bio-scan">
+        <svg class="bio-ring-svg" data-bio-ring viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="bio-ring-track" cx="60" cy="60" r="54"></circle>
+          <circle class="bio-ring" cx="60" cy="60" r="54"></circle>
+        </svg>
+
+        <div class="bio-icon-wrap">
+          <!-- Huella -->
+          <svg
+            data-visual="huella"
+            class="bio-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"></path>
+            <path d="M14 13.12c0 2.38 0 6.38-1 8.88"></path>
+            <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"></path>
+            <path d="M2 12a10 10 0 0 1 18-6"></path>
+            <path d="M2 16h.01"></path>
+            <path d="M21.8 16c.2-2 .131-5.354 0-6"></path>
+            <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"></path>
+            <path d="M8.65 22c.21-.66.45-1.32.57-2"></path>
+            <path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path>
+          </svg>
+
+          <!-- Rostro -->
+          <svg
+            data-visual="rostro"
+            class="bio-icon"
+            hidden
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 8V5a1 1 0 0 1 1-1h3"></path>
+            <path d="M16 4h3a1 1 0 0 1 1 1v3"></path>
+            <path d="M20 16v3a1 1 0 0 1-1 1h-3"></path>
+            <path d="M8 20H5a1 1 0 0 1-1-1v-3"></path>
+            <ellipse cx="12" cy="12" rx="6" ry="7.5"></ellipse>
+            <path d="M9 10h.01"></path>
+            <path d="M15 10h.01"></path>
+            <path d="M9.5 15c1.5 1 3.5 1 5 0"></path>
+            <circle class="bio-landmark" cx="9" cy="10" r="0.7"></circle>
+            <circle class="bio-landmark" cx="15" cy="10" r="0.7"></circle>
+            <circle class="bio-landmark" cx="12" cy="12.5" r="0.7"></circle>
+            <circle class="bio-landmark" cx="12" cy="15.5" r="0.7"></circle>
+          </svg>
+
+          <!-- Éxito -->
+          <svg
+            data-visual="ok"
+            class="bio-check"
+            hidden
+            viewBox="0 0 52 52"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle class="bio-check-circle" cx="26" cy="26" r="23" stroke="currentColor" stroke-width="3"></circle>
+            <path
+              class="bio-check-mark"
+              d="M15 27l7 7 15-16"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+
+          <span class="bio-sweep" data-bio-sweep aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <p class="bio-status" data-bio-status aria-live="polite">Preparando verificación…</p>
+      <p class="bio-welcome" data-bio-welcome hidden></p>
+
+      <p class="bio-note">Simulación demostrativa. No se captura ningún dato biométrico.</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .bio-gate {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-biometric);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f6f7f9;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .bio-gate[hidden] {
+    display: none;
+  }
+
+  .bio-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0.25rem 0;
+  }
+
+  .bio-body {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .bio-card {
+    width: 100%;
+    max-width: 22rem;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--color-border);
+    background: #fff;
+    text-align: center;
+    box-shadow: 0 24px 60px -28px rgb(15 23 42 / 0.4);
+    animation: bio-card-in 260ms ease-out both;
+  }
+
+  @keyframes bio-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .bio-methods {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-top: 1rem;
+    padding: 0.25rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .bio-chip {
+    min-height: 2.5rem;
+    padding: 0 1.1rem;
+    border: 0;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .bio-chip[aria-checked="true"] {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .bio-chip:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .bio-scan {
+    position: relative;
+    width: 9rem;
+    height: 9rem;
+    margin: 1.25rem auto 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .bio-ring-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .bio-ring-track {
+    fill: none;
+    stroke: var(--color-border);
+    stroke-width: 4;
+  }
+
+  .bio-ring {
+    fill: none;
+    stroke: #2563eb;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 339.292;
+    stroke-dashoffset: 339.292;
+    transition: stroke 0.3s ease;
+  }
+
+  .bio-gate.bio-scanning .bio-ring {
+    animation: bio-ring-fill 2s linear forwards;
+  }
+
+  .bio-gate.bio-success .bio-ring {
+    stroke: #16a34a;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  @keyframes bio-ring-fill {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .bio-icon-wrap {
+    position: relative;
+    width: 4.5rem;
+    height: 4.5rem;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+
+  .bio-icon,
+  .bio-check {
+    width: 100%;
+    height: 100%;
+    color: var(--color-accent);
+  }
+
+  .bio-check {
+    color: #16a34a;
+  }
+
+  .bio-sweep {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #2563eb, transparent);
+    box-shadow: 0 0 8px 1px rgb(37 99 235 / 0.7);
+    opacity: 0;
+  }
+
+  .bio-gate.bio-scanning .bio-sweep {
+    opacity: 1;
+    animation: bio-sweep 1.6s ease-in-out infinite;
+  }
+
+  @keyframes bio-sweep {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4.4rem);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  .bio-landmark {
+    fill: #2563eb;
+    stroke: none;
+    opacity: 0.15;
+  }
+
+  .bio-gate.bio-scanning .bio-landmark {
+    animation: bio-landmark 2s ease-in-out infinite;
+  }
+
+  .bio-gate.bio-scanning .bio-landmark:nth-of-type(1) {
+    animation-delay: 0.2s;
+  }
+  .bio-gate.bio-scanning .bio-landmark:nth-of-type(2) {
+    animation-delay: 0.6s;
+  }
+  .bio-gate.bio-scanning .bio-landmark:nth-of-type(3) {
+    animation-delay: 1s;
+  }
+  .bio-gate.bio-scanning .bio-landmark:nth-of-type(4) {
+    animation-delay: 1.4s;
+  }
+
+  @keyframes bio-landmark {
+    0%,
+    100% {
+      opacity: 0.15;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+
+  .bio-check-circle {
+    stroke-dasharray: 145;
+    stroke-dashoffset: 145;
+  }
+
+  .bio-check-mark {
+    stroke-dasharray: 32;
+    stroke-dashoffset: 32;
+  }
+
+  .bio-gate.bio-success .bio-check-circle {
+    animation: bio-check-circle 0.5s ease-out forwards;
+  }
+
+  .bio-gate.bio-success .bio-check-mark {
+    animation: bio-check-mark 0.3s ease-out 0.35s forwards;
+  }
+
+  @keyframes bio-check-circle {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes bio-check-mark {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .bio-status {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  .bio-welcome {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .bio-note {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+
+  /* Pantalla baja (celular horizontal): compactar. */
+  @media (orientation: landscape) and (max-height: 480px) {
+    .bio-gate {
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .bio-card {
+      padding: 1rem;
+    }
+
+    .bio-scan {
+      width: 6rem;
+      height: 6rem;
+      margin-top: 0.5rem;
+    }
+
+    .bio-note {
+      margin-top: 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bio-card,
+    .bio-gate.bio-scanning .bio-sweep,
+    .bio-gate.bio-scanning .bio-landmark,
+    .bio-gate.bio-scanning .bio-ring,
+    .bio-gate.bio-success .bio-check-circle,
+    .bio-gate.bio-success .bio-check-mark {
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  import { clearSession, hasVerifiedSession, markSessionVerified } from "../../lib/session";
+  import { getStoredName } from "../../lib/user";
+
+  const gate = document.querySelector<HTMLElement>("[data-biometric]");
+
+  if (gate) {
+    const shell = document.querySelector<HTMLElement>("[data-app-shell]");
+    const title = document.querySelector<HTMLElement>("[data-bio-title]");
+    const statusEl = document.querySelector<HTMLElement>("[data-bio-status]");
+    const welcomeEl = document.querySelector<HTMLElement>("[data-bio-welcome]");
+    const ring = document.querySelector<HTMLElement>("[data-bio-ring]");
+    const methods = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-method]"));
+    const visualHuella = document.querySelector<SVGElement>('[data-visual="huella"]');
+    const visualRostro = document.querySelector<SVGElement>('[data-visual="rostro"]');
+    const visualOk = document.querySelector<SVGElement>('[data-visual="ok"]');
+
+    let method: "huella" | "rostro" = "huella";
+    let requestedHash = window.location.hash || "#/inicio";
+    let timers: number[] = [];
+
+    const clearTimers = () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      timers = [];
+    };
+
+    const lockShell = () => {
+      if (!shell) return;
+      shell.setAttribute("inert", "");
+      shell.setAttribute("aria-hidden", "true");
+    };
+
+    const unlockShell = () => {
+      if (!shell) return;
+      shell.removeAttribute("inert");
+      shell.removeAttribute("aria-hidden");
+    };
+
+    const setMethod = (value: "huella" | "rostro") => {
+      method = value;
+      methods.forEach((btn) =>
+        btn.setAttribute("aria-checked", String(btn.dataset.method === value))
+      );
+      if (visualHuella) visualHuella.hidden = value !== "huella";
+      if (visualRostro) visualRostro.hidden = value !== "rostro";
+      if (ring) ring.style.display = value === "huella" ? "" : "none";
+    };
+
+    const label = () => (method === "huella" ? "huella digital" : "rostro");
+    const doneLabel = () => (method === "huella" ? "Huella verificada" : "Rostro verificado");
+
+    const finish = () => {
+      gate.classList.add("bio-success");
+      if (visualHuella) visualHuella.hidden = true;
+      if (visualRostro) visualRostro.hidden = true;
+      if (visualOk) visualOk.hidden = false;
+      if (statusEl) statusEl.textContent = doneLabel();
+      if (welcomeEl) {
+        const first = getStoredName().split(/\s+/)[0];
+        welcomeEl.hidden = false;
+        welcomeEl.textContent = `Bienvenido, ${first}`;
+      }
+    };
+
+    const startScan = () => {
+      if (statusEl) statusEl.textContent = `Escaneando ${label()}…`;
+      gate.classList.add("bio-scanning");
+      timers.push(window.setTimeout(finish, 2000));
+    };
+
+    const reveal = () => {
+      markSessionVerified();
+      gate.hidden = true;
+      gate.classList.remove("bio-scanning", "bio-success");
+      unlockShell();
+      if (requestedHash && window.location.hash !== requestedHash) {
+        window.location.hash = requestedHash;
+      }
+      document.dispatchEvent(new CustomEvent("encredit:unlocked"));
+    };
+
+    const run = () => {
+      clearTimers();
+      requestedHash = window.location.hash || requestedHash || "#/inicio";
+      gate.hidden = false;
+      gate.classList.remove("bio-scanning", "bio-success");
+      if (visualOk) visualOk.hidden = true;
+      if (welcomeEl) welcomeEl.hidden = true;
+      if (statusEl) statusEl.textContent = "Preparando verificación…";
+      setMethod(method);
+      methods.forEach((btn) => (btn.disabled = false));
+      lockShell();
+      title?.focus();
+
+      timers.push(
+        window.setTimeout(() => {
+          methods.forEach((btn) => (btn.disabled = true));
+          startScan();
+        }, 600)
+      );
+      timers.push(window.setTimeout(reveal, 3600));
+    };
+
+    methods.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.disabled) return;
+        setMethod(btn.dataset.method as "huella" | "rostro");
+      });
+    });
+
+    document.addEventListener("encredit:lock", (event) => {
+      clearSession();
+      const detail = (event as CustomEvent<{ hash?: string }>).detail;
+      const target = detail?.hash ?? "#/inicio";
+      if (window.location.hash !== target) window.location.hash = target;
+      requestedHash = target;
+      run();
+    });
+
+    if (hasVerifiedSession()) {
+      gate.hidden = true;
+      unlockShell();
+    } else {
+      run();
+    }
+  }
+</script>

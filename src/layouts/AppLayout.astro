@@ -112,8 +112,10 @@ const qrSvg = await QRCode.toString(APP_PUBLIC_URL, {
       .app-view {
         display: flex;
         flex-direction: column;
-        min-height: 100dvh;
+        height: 100vh;
+        height: 100dvh;
         width: 100%;
+        overflow: hidden;
       }
 
       .app-stage {
@@ -134,6 +136,7 @@ const qrSvg = await QRCode.toString(APP_PUBLIC_URL, {
         display: flex;
         flex-direction: column;
         min-width: 0;
+        min-height: 0;
         overflow: hidden;
         background: var(--color-bg);
         container-type: inline-size;
@@ -157,6 +160,9 @@ const qrSvg = await QRCode.toString(APP_PUBLIC_URL, {
         justify-content: center;
         gap: 2.5rem;
         padding: 2rem;
+        height: auto;
+        min-height: 100dvh;
+        overflow: visible;
       }
 
       html[data-device="desktop"] .app-stage {

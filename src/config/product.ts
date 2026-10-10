@@ -1,6 +1,5 @@
 export interface DemoUser {
   name: string;
-  email: string;
   accountType: string;
   status: string;
   memberSince: string;
@@ -21,7 +20,6 @@ export interface ConditionRow {
 
 export const demoUser: DemoUser = {
   name: "Juan Pérez",
-  email: "juan.perez@ejemplo.mx",
   accountType: "Línea de crédito",
   status: "Cuenta activa",
   memberSince: "2024-03-12",
