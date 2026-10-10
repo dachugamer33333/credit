@@ -78,7 +78,7 @@ const frontDots = puntos.filter((p) => p.dot && p.dot.face === "front");
 const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
 ---
 
-<section id="blindaje" data-security class="border-t border-white/10 bg-surface/40">
+<section id="blindaje" data-security class="border-t border-border bg-surface">
   <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
     <!-- Encabezado -->
     <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
@@ -364,7 +364,7 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
           type="button"
           data-flip
           aria-pressed="false"
-          class="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 px-6 text-sm font-semibold text-ink transition duration-300 hover:border-white/30 hover:bg-white/5"
+          class="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-6 text-sm font-semibold text-ink transition duration-300 hover:border-slate-300 hover:bg-slate-100"
         >
           <svg
             class="h-4 w-4"
@@ -397,9 +397,9 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
                 <button
                   type="button"
                   data-list-dot={p.n}
-                  class="security-list-item flex h-full w-full items-start gap-3 rounded-xl border border-white/10 bg-bg/60 p-3 text-left transition duration-300 hover:border-accent/40 hover:bg-bg"
+                  class="security-list-item flex h-full w-full items-start gap-3 rounded-xl border border-border bg-white p-3 text-left transition duration-300 hover:border-accent/40 hover:bg-bg"
                 >
-                  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-ink">
+                  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
                     {p.n}
                   </span>
                   <span class="mt-0.5 shrink-0 text-accent">
@@ -430,7 +430,7 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
 
         <!-- Franja app -->
         <div
-          class="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-bg/60 p-4 text-center sm:flex-row sm:justify-between sm:text-left"
+          class="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-border bg-bg p-4 text-center sm:flex-row sm:justify-between sm:text-left"
         >
           <p class="text-sm text-muted">
             Y desde la app:
@@ -439,7 +439,7 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
           </p>
           <a
             href="#app"
-            class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-white/15 px-4 text-sm font-semibold text-ink transition duration-300 hover:border-white/30 hover:bg-white/5"
+            class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-border px-4 text-sm font-semibold text-ink transition duration-300 hover:border-slate-300 hover:bg-slate-100"
           >
             Ver la app
             <svg
@@ -502,7 +502,7 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
     font-size: 0.7rem;
     font-weight: 700;
     line-height: 1;
-    box-shadow: 0 0 0 3px rgb(10 13 20 / 0.75);
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.9), 0 2px 8px rgb(15 23 42 / 0.25);
     transition: background-color 0.2s ease, transform 0.2s ease;
   }
 
@@ -546,9 +546,9 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
     max-width: 11rem;
     padding: 0.5rem 0.65rem;
     border-radius: 0.5rem;
-    background: #0b0d12;
-    border: 1px solid rgb(255 255 255 / 0.15);
-    box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.9);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 30px -12px rgb(15 23 42 / 0.25);
     text-align: left;
     opacity: 0;
     visibility: hidden;
@@ -560,7 +560,7 @@ const backDots = puntos.filter((p) => p.dot && p.dot.face === "back");
     display: block;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #fff;
+    color: #0f172a;
   }
 
   .security-dot .dot-tooltip span {

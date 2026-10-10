@@ -6,7 +6,7 @@ import conceptImage from "../assets/concept.jpg";
 const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Eventos"];
 ---
 
-<section id="concepto" class="border-t border-white/10 bg-surface/40">
+<section id="concepto" class="border-t border-border bg-surface">
   <div
     class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-2 lg:gap-16 lg:px-8"
   >
@@ -16,7 +16,7 @@ const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Event
         El concepto — 縁 / En
       </p>
 
-      <div class="prose prose-invert prose-en max-w-none">
+      <div class="prose prose-en max-w-none">
         <h2 class="text-3xl font-bold sm:text-4xl">El lazo que todo lo conecta</h2>
         <p>
           En japonés, <strong>縁 (En)</strong> es el hilo invisible que une a las personas con sus
@@ -38,7 +38,7 @@ const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Event
         {
           disciplinas.map((d) => (
             <li>
-              <span class="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-muted transition duration-300 hover:border-accent/40 hover:text-ink">
+              <span class="inline-flex items-center rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-muted transition duration-300 hover:border-accent/40 hover:text-ink">
                 {d}
               </span>
             </li>
@@ -48,7 +48,7 @@ const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Event
     </div>
 
     <!-- Imagen de apoyo con overlay hacia el fondo -->
-    <figure class="relative mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-white/10">
+    <figure class="relative mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-border">
       <Image
         src={conceptImage}
         alt="Escena nocturna con tonos oscuros que representa la creación artística"
@@ -64,7 +64,7 @@ const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Event
         class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(10,13,20,0.95),rgba(10,13,20,0.35)_55%,transparent)]"
         aria-hidden="true"></span>
       <figcaption
-        class="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-sm text-muted"
+        class="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-sm text-white/80"
       >
         Proyecto conceptual · Imagen de referencia
       </figcaption>
@@ -80,6 +80,6 @@ const disciplinas = ["Cine", "Artes Visuales", "Música", "Producciones", "Event
     --tw-prose-links: var(--color-accent);
     --tw-prose-quotes: var(--color-ink);
     --tw-prose-quote-borders: var(--color-accent);
-    --tw-prose-hr: rgb(255 255 255 / 0.1);
+    --tw-prose-hr: var(--color-border);
   }
 </style>

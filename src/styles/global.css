@@ -6,12 +6,15 @@
    ============================================================ */
 @theme {
   /* Superficies */
-  --color-bg: #0a0d14;
-  --color-surface: #131926;
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+
+  /* Bordes */
+  --color-border: #e5e7eb;
 
   /* Acento */
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1e40af;
 
   /* Línea tricolor de marca */
   --color-tri-blue: #2563eb;
@@ -19,8 +22,8 @@
   --color-tri-amber: #f59e0b;
 
   /* Texto */
-  --color-ink: #ffffff;
-  --color-muted: #94a3b8;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
 
   /* Tipografías */
   --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;

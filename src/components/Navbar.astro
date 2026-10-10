@@ -7,7 +7,7 @@ const links = [
 ];
 ---
 
-<header class="sticky top-0 z-50 border-b border-white/10 bg-bg/80 backdrop-blur-md">
+<header class="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur-md">
   <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Principal">
     <div class="flex h-16 items-center justify-between md:h-20">
       <!-- Logo -->
@@ -44,14 +44,14 @@ const links = [
       <div class="flex items-center gap-2">
         <a
           href="#productos"
-          class="hidden h-11 items-center rounded-full bg-accent px-5 text-sm font-semibold text-ink transition duration-300 hover:bg-accent-hover md:inline-flex"
+          class="hidden h-11 items-center rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-300 hover:bg-accent-hover md:inline-flex"
           >Solicitar Crédito</a
         >
 
         <button
           id="menu-toggle"
           type="button"
-          class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-ink transition duration-300 hover:bg-white/5 md:hidden"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border text-ink transition duration-300 hover:bg-slate-100 md:hidden"
           aria-controls="mobile-menu"
           aria-expanded="false"
           aria-label="Abrir menú"
@@ -74,14 +74,14 @@ const links = [
 
     <!-- Menú móvil -->
     <div id="mobile-menu" class="hidden md:hidden" hidden>
-      <ul class="flex flex-col gap-1 border-t border-white/10 py-3">
+      <ul class="flex flex-col gap-1 border-t border-border py-3">
         {
           links.map((link) => (
             <li>
               <a
                 href={link.href}
                 data-mobile-link
-                class="flex min-h-11 items-center rounded-lg px-3 text-base font-medium text-muted transition duration-300 hover:bg-white/5 hover:text-ink"
+                class="flex min-h-11 items-center rounded-lg px-3 text-base font-medium text-muted transition duration-300 hover:bg-slate-100 hover:text-ink"
               >
                 {link.label}
               </a>
@@ -92,7 +92,7 @@ const links = [
           <a
             href="#productos"
             data-mobile-link
-            class="flex min-h-11 items-center justify-center rounded-full bg-accent px-5 text-base font-semibold text-ink transition duration-300 hover:bg-accent-hover"
+            class="flex min-h-11 items-center justify-center rounded-full bg-accent px-5 text-base font-semibold text-white transition duration-300 hover:bg-accent-hover"
             >Solicitar Crédito</a
           >
         </li>
