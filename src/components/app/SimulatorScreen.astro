@@ -1,15 +1,842 @@
 ---
 import TopBar from "./TopBar.astro";
+import DemoTag from "./DemoTag.astro";
+import { loanConfig } from "../../config/product";
+import { buildLoan } from "../../lib/loan";
+import { formatMXN } from "../../lib/format";
+
+const {
+  montoMinimo,
+  montoMaximo,
+  montoInicial,
+  pasoMonto,
+  plazos,
+  plazoInicial,
+  tasaAnual,
+  ivaIntereses,
+  comision,
+} = loanConfig;
+
+const initial = buildLoan({
+  monto: montoInicial,
+  plazo: plazoInicial,
+  tasaAnual,
+  ivaIntereses,
+  comision,
+});
+
+const tasaLabel = `${(tasaAnual * 100).toLocaleString("es-MX", { maximumFractionDigits: 2 })}%`;
+
+const money2 = (value: number) => formatMXN(value, 2);
+const capitalShareInicial = montoInicial / initial.totalPagar;
+const interesShareInicial = 1 - capitalShareInicial;
+
+const initialRows = initial.tabla.map((fila) => ({
+  mes: fila.mes,
+  saldoInicial: money2(fila.saldoInicial),
+  interes: money2(fila.interes),
+  iva: money2(fila.iva),
+  capital: money2(fila.capital),
+  pago: money2(fila.pago),
+  saldoFinal: money2(fila.saldoFinal),
+}));
 ---
 
 <section data-screen="simulador" hidden class="app-section" aria-hidden="true">
-  <TopBar title="Préstamo" />
+  <TopBar title="Simula tu préstamo" />
 
-  <div class="mx-auto w-full max-w-[560px] px-4 py-5">
-    <div
-      class="grid min-h-[40vh] place-items-center rounded-2xl border border-dashed border-border bg-surface/60 p-8 text-center"
+  <div class="mx-auto w-full max-w-[680px] px-4 py-5">
+    <div class="sim-grid">
+      <!-- Formulario -->
+      <div class="flex min-w-0 flex-col gap-4">
+        <div class="rounded-2xl border border-border bg-surface p-4">
+          <label for="sim-amount-range" class="block text-xs uppercase tracking-[0.16em] text-muted">
+            Monto del préstamo
+          </label>
+          <output
+            data-amount-display
+            class="mt-1 block font-display text-3xl font-bold leading-tight text-ink"
+          >
+            {formatMXN(montoInicial)}
+          </output>
+
+          <input
+            id="sim-amount-range"
+            data-amount-range
+            type="range"
+            min={montoMinimo}
+            max={montoMaximo}
+            step={pasoMonto}
+            value={montoInicial}
+            aria-label="Monto del préstamo"
+            class="sim-range mt-3 w-full"
+          />
+
+          <div class="mt-1 flex justify-between text-xs text-muted">
+            <span>{formatMXN(montoMinimo)}</span>
+            <span>{formatMXN(montoMaximo)}</span>
+          </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <label for="sim-amount-input" class="text-sm text-muted">Editar monto</label>
+            <input
+              id="sim-amount-input"
+              data-amount-input
+              type="number"
+              min={montoMinimo}
+              max={montoMaximo}
+              step={pasoMonto}
+              value={montoInicial}
+              inputmode="numeric"
+              class="min-h-11 w-28 rounded-xl border border-border bg-white px-3 text-sm text-ink"
+            />
+          </div>
+        </div>
+
+        <!-- Plazo -->
+        <div role="radiogroup" aria-label="Plazo en meses" class="rounded-2xl border border-border bg-surface p-4">
+          <p class="text-xs uppercase tracking-[0.16em] text-muted">Plazo</p>
+          <div class="mt-2 grid grid-cols-3 gap-2">
+            {
+              plazos.map((plazo) => (
+                <label class="sim-chip relative cursor-pointer">
+                  <input
+                    type="radio"
+                    name="sim-plazo"
+                    value={plazo}
+                    data-plazo
+                    checked={plazo === plazoInicial}
+                    class="sr-only"
+                  />
+                  <span class="flex min-h-11 items-center justify-center rounded-xl border border-border px-2 text-sm font-medium text-ink">
+                    {plazo} meses
+                  </span>
+                </label>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="flex min-w-0 flex-col gap-4">
+        <div class="rounded-2xl border border-border bg-surface p-4">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-roboto text-sm font-medium text-ink">Resultados</h3>
+            <DemoTag />
+          </div>
+
+          <dl class="mt-3 flex flex-col gap-2.5 text-sm">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Lo que solicitas</dt>
+              <dd data-r-monto class="shrink-0 text-right font-roboto font-medium text-ink">
+                {formatMXN(montoInicial)}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Tasa de interés anual aplicable</dt>
+              <dd data-r-tasa class="shrink-0 text-right font-roboto font-medium text-ink">
+                {tasaLabel}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Intereses</dt>
+              <dd data-r-interes class="shrink-0 text-right font-roboto font-medium text-ink">
+                {money2(initial.interesTotal)}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">IVA de intereses</dt>
+              <dd data-r-iva class="shrink-0 text-right font-roboto font-medium text-ink">
+                {money2(initial.ivaTotal)}
+              </dd>
+            </div>
+          </dl>
+
+          <div class="mt-4 rounded-xl bg-accent/10 p-3 text-center">
+            <p class="text-xs uppercase tracking-[0.16em] text-muted">Mensualidad fija</p>
+            <p data-r-pago class="font-display text-2xl font-bold text-accent">
+              {money2(initial.pagoMensual)}
+            </p>
+            <p class="text-xs text-muted">al mes</p>
+          </div>
+
+          <div class="mt-3 flex items-center justify-between gap-3 text-sm">
+            <span class="text-muted">Total a pagar</span>
+            <span data-r-total class="shrink-0 text-right font-roboto font-semibold text-ink">
+              {money2(initial.totalPagar)}
+            </span>
+          </div>
+
+          <div class="mt-3 flex items-center justify-between gap-3 text-sm">
+            <span class="text-muted">CAT</span>
+            <span class="flex items-center gap-2">
+              <span data-r-cat class="font-roboto font-semibold text-ink">
+                {(initial.cat * 100).toFixed(2)}%
+              </span>
+              <DemoTag />
+            </span>
+          </div>
+
+          <!-- Barra capital vs. intereses -->
+          <div class="mt-4">
+            <div class="flex h-2.5 overflow-hidden rounded-full bg-slate-200">
+              <span
+                data-bar-capital
+                class="h-full bg-accent"
+                style={`width:${(capitalShareInicial * 100).toFixed(2)}%`}></span>
+              <span
+                data-bar-interes
+                class="h-full bg-amber-400"
+                style={`width:${(interesShareInicial * 100).toFixed(2)}%`}></span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-xs text-muted">
+              <span class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-accent"></span>
+                Capital <span data-legend-capital>{formatMXN(montoInicial)}</span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                Intereses + IVA
+                <span data-legend-interes>{money2(initial.interesTotal + initial.ivaTotal)}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desglose mes a mes -->
+        <details class="overflow-hidden rounded-2xl border border-border bg-surface">
+          <summary
+            class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden"
+          >
+            Ver desglose mes a mes
+            <svg
+              class="h-4 w-4 shrink-0 text-muted"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </summary>
+          <div class="amort-body border-t border-border" data-amort-wrap>
+            <!-- Vista compacta (contenedor angosto): una tarjeta por mes -->
+            <ul data-amort-list class="amort-list flex flex-col divide-y divide-border">
+              {
+                initialRows.map((fila) => (
+                  <li class="px-4 py-3">
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="font-roboto text-sm font-semibold text-ink">Mes {fila.mes}</span>
+                      <span class="font-roboto text-sm font-semibold text-ink">{fila.pago}</span>
+                    </div>
+                    <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <div class="flex justify-between gap-2">
+                        <dt class="text-muted">Capital</dt>
+                        <dd class="text-ink">{fila.capital}</dd>
+                      </div>
+                      <div class="flex justify-between gap-2">
+                        <dt class="text-muted">Interés</dt>
+                        <dd class="text-ink">{fila.interes}</dd>
+                      </div>
+                      <div class="flex justify-between gap-2">
+                        <dt class="text-muted">IVA</dt>
+                        <dd class="text-ink">{fila.iva}</dd>
+                      </div>
+                      <div class="flex justify-between gap-2">
+                        <dt class="text-muted">Saldo final</dt>
+                        <dd class="text-ink">{fila.saldoFinal}</dd>
+                      </div>
+                      <div class="col-span-2 mt-1 flex justify-between gap-2 border-t border-border pt-1">
+                        <dt class="text-muted">Saldo inicial</dt>
+                        <dd class="text-ink">{fila.saldoInicial}</dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))
+              }
+            </ul>
+
+            <!-- Vista tabla (contenedor ancho) -->
+            <div class="amort-table overflow-x-auto">
+              <table class="w-full min-w-[560px] border-collapse text-left text-xs sm:text-sm">
+                <thead class="bg-bg text-muted">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Mes</th>
+                    <th class="px-3 py-2 font-medium">Saldo inicial</th>
+                    <th class="px-3 py-2 font-medium">Interés</th>
+                    <th class="px-3 py-2 font-medium">IVA</th>
+                    <th class="px-3 py-2 font-medium">Capital</th>
+                    <th class="px-3 py-2 font-medium">Pago</th>
+                    <th class="px-3 py-2 font-medium">Saldo final</th>
+                  </tr>
+                </thead>
+                <tbody data-amort-body>
+                  {
+                    initialRows.map((fila) => (
+                      <tr class="border-t border-border">
+                        <td class="px-3 py-2 text-ink">{fila.mes}</td>
+                        <td class="px-3 py-2 text-muted">{fila.saldoInicial}</td>
+                        <td class="px-3 py-2 text-muted">{fila.interes}</td>
+                        <td class="px-3 py-2 text-muted">{fila.iva}</td>
+                        <td class="px-3 py-2 text-muted">{fila.capital}</td>
+                        <td class="px-3 py-2 text-ink">{fila.pago}</td>
+                        <td class="px-3 py-2 text-muted">{fila.saldoFinal}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+
+        <a
+          href="#/perfil/avisos"
+          data-ripple
+          class="relative inline-flex min-h-11 items-center justify-center gap-1.5 self-start overflow-hidden rounded-full px-3 text-sm font-medium text-accent transition duration-200 hover:bg-accent/10"
+        >
+          Ver condiciones
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+
+        <button
+          type="button"
+          data-sim-open
+          data-ripple
+          class="sim-button-inline relative min-h-12 items-center justify-center overflow-hidden rounded-full bg-accent px-6 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover"
+        >
+          Simular préstamo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra inferior fija (móvil vertical) -->
+  <div
+    class="sim-sticky sticky bottom-0 z-20 items-center justify-between gap-3 border-t border-border bg-surface/95 px-4 py-3 backdrop-blur"
+  >
+    <div>
+      <p class="text-[0.65rem] uppercase tracking-[0.16em] text-muted">Mensualidad fija</p>
+      <p data-r-pago-sticky class="font-display text-lg font-bold text-accent">
+        {money2(initial.pagoMensual)}
+      </p>
+    </div>
+    <button
+      type="button"
+      data-sim-open
+      data-ripple
+      class="relative inline-flex min-h-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover"
     >
-      <p class="text-sm text-muted">Simulador en construcción.</p>
+      Simular préstamo
+    </button>
+  </div>
+
+  <!-- Región de anuncios (debounced) -->
+  <p data-sim-live class="sr-only" aria-live="polite"></p>
+
+  <!-- Bottom sheet de resumen -->
+  <div data-sim-sheet hidden>
+    <div class="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3" data-sim-backdrop>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sim-sheet-title"
+        class="w-full max-w-md rounded-3xl border border-border bg-surface p-6 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.5)]"
+      >
+        <div data-sim-summary>
+          <h2 id="sim-sheet-title" class="font-display text-lg font-bold text-ink">
+            Resumen de tu simulación
+          </h2>
+          <dl class="mt-4 flex flex-col gap-2.5 text-sm">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Lo que solicitas</dt>
+              <dd data-s-monto class="font-roboto font-medium text-ink"></dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Plazo</dt>
+              <dd data-s-plazo class="font-roboto font-medium text-ink"></dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Mensualidad fija</dt>
+              <dd data-s-pago class="font-roboto font-semibold text-ink"></dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Total a pagar</dt>
+              <dd data-s-total class="font-roboto font-medium text-ink"></dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">CAT</dt>
+              <dd data-s-cat class="font-roboto font-medium text-ink"></dd>
+            </div>
+          </dl>
+
+          <p class="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-700">
+            Simulación. No se procesa ninguna operación real.
+          </p>
+
+          <div class="mt-4 flex gap-3">
+            <button
+              type="button"
+              data-sim-cancel
+              class="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-border px-5 text-sm font-semibold text-ink transition duration-200 hover:bg-slate-100"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              data-sim-confirm
+              class="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover"
+            >
+              Confirmar simulación
+            </button>
+          </div>
+        </div>
+
+        <div data-sim-success hidden class="flex flex-col items-center text-center">
+          <svg
+            data-sim-check
+            class="sim-check h-16 w-16 text-emerald-500"
+            viewBox="0 0 52 52"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle class="sim-check-circle" cx="26" cy="26" r="23" stroke="currentColor" stroke-width="3" />
+            <path
+              class="sim-check-mark"
+              d="M15 27l7 7 15-16"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <h2 class="mt-4 font-display text-lg font-bold text-ink">Simulación confirmada</h2>
+          <p data-s-success class="mt-1 text-sm text-muted"></p>
+          <a
+            href="#/inicio"
+            data-sim-close
+            class="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover"
+          >
+            Volver al inicio
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<style>
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .sim-sticky {
+    display: flex;
+  }
+
+  .sim-button-inline {
+    display: none;
+  }
+
+  /* Desglose: tarjetas o tabla según el ancho real del contenedor. */
+  .amort-body {
+    min-width: 0;
+    container-type: inline-size;
+    container-name: amort;
+  }
+
+  .amort-list {
+    display: flex;
+  }
+
+  .amort-table {
+    display: none;
+  }
+
+  @container amort (min-width: 560px) {
+    .amort-list {
+      display: none;
+    }
+
+    .amort-table {
+      display: block;
+    }
+  }
+
+  @container app (min-width: 700px) {
+    .sim-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .sim-sticky {
+      display: none;
+    }
+
+    .sim-button-inline {
+      display: inline-flex;
+    }
+  }
+
+  .sim-chip input:checked + span {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+  }
+
+  .sim-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2.75rem;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .sim-range::-webkit-slider-runnable-track {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: #e2e8f0;
+  }
+
+  .sim-range::-moz-range-track {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: #e2e8f0;
+  }
+
+  .sim-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: -0.5rem;
+    border-radius: 9999px;
+    background: var(--color-accent);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgb(15 23 42 / 0.3);
+  }
+
+  .sim-range::-moz-range-thumb {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #fff;
+    border-radius: 9999px;
+    background: var(--color-accent);
+  }
+
+  .sim-check-circle {
+    stroke-dasharray: 145;
+    stroke-dashoffset: 145;
+  }
+
+  .sim-check-mark {
+    stroke-dasharray: 32;
+    stroke-dashoffset: 32;
+  }
+
+  .sim-check-run .sim-check-circle {
+    animation: sim-check-circle 0.5s ease-out forwards;
+  }
+
+  .sim-check-run .sim-check-mark {
+    animation: sim-check-mark 0.3s ease-out 0.4s forwards;
+  }
+
+  @keyframes sim-check-circle {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes sim-check-mark {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sim-check-run .sim-check-circle,
+    .sim-check-run .sim-check-mark {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+  }
+</style>
+
+<script>
+  import { loanConfig } from "../../config/product";
+  import { buildLoan, type AmortizationRow } from "../../lib/loan";
+  import { formatMXN } from "../../lib/format";
+  import { initRipple } from "../../lib/ripple";
+
+  initRipple();
+
+  const money2 = (value: number) => formatMXN(value, 2);
+  const nf = new Intl.NumberFormat("es-MX");
+
+  const range = document.querySelector<HTMLInputElement>("[data-amount-range]");
+  const numberInput = document.querySelector<HTMLInputElement>("[data-amount-input]");
+  const amountDisplay = document.querySelector<HTMLElement>("[data-amount-display]");
+  const plazoRadios = Array.from(document.querySelectorAll<HTMLInputElement>("[data-plazo]"));
+  const tbody = document.querySelector<HTMLElement>("[data-amort-body]");
+  const list = document.querySelector<HTMLElement>("[data-amort-list]");
+  const live = document.querySelector<HTMLElement>("[data-sim-live]");
+
+  const clampSnap = (value: number): number => {
+    const { montoMinimo, montoMaximo, pasoMonto } = loanConfig;
+    const clamped = Math.min(montoMaximo, Math.max(montoMinimo, value || montoMinimo));
+    const snapped = Math.round((clamped - montoMinimo) / pasoMonto) * pasoMonto + montoMinimo;
+    return Math.min(montoMaximo, Math.max(montoMinimo, snapped));
+  };
+
+  const currentPlazo = (): number => {
+    const checked = plazoRadios.find((radio) => radio.checked);
+    return checked ? Number(checked.value) : loanConfig.plazoInicial;
+  };
+
+  const setText = (selector: string, text: string): void => {
+    const el = document.querySelector<HTMLElement>(selector);
+    if (el) el.textContent = text;
+  };
+
+  let liveTimer: number | undefined;
+  let lastResult = buildLoan({
+    monto: loanConfig.montoInicial,
+    plazo: loanConfig.plazoInicial,
+    tasaAnual: loanConfig.tasaAnual,
+    ivaIntereses: loanConfig.ivaIntereses,
+    comision: loanConfig.comision,
+  });
+
+  const buildTableRow = (fila: AmortizationRow): HTMLTableRowElement => {
+    const tr = document.createElement("tr");
+    tr.className = "border-t border-border";
+    const cells: Array<[string, string]> = [
+      [String(fila.mes), "text-ink"],
+      [money2(fila.saldoInicial), "text-muted"],
+      [money2(fila.interes), "text-muted"],
+      [money2(fila.iva), "text-muted"],
+      [money2(fila.capital), "text-muted"],
+      [money2(fila.pago), "text-ink"],
+      [money2(fila.saldoFinal), "text-muted"],
+    ];
+    for (const [text, cls] of cells) {
+      const td = document.createElement("td");
+      td.className = `px-3 py-2 ${cls}`;
+      td.textContent = text;
+      tr.appendChild(td);
+    }
+    return tr;
+  };
+
+  const buildCardRow = (label: string, value: string): HTMLElement => {
+    const row = document.createElement("div");
+    row.className = "flex justify-between gap-2";
+    const dt = document.createElement("dt");
+    dt.className = "text-muted";
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.className = "text-ink";
+    dd.textContent = value;
+    row.append(dt, dd);
+    return row;
+  };
+
+  const buildCard = (fila: AmortizationRow): HTMLElement => {
+    const li = document.createElement("li");
+    li.className = "px-4 py-3";
+
+    const head = document.createElement("div");
+    head.className = "flex items-center justify-between gap-3";
+    const mes = document.createElement("span");
+    mes.className = "font-roboto text-sm font-semibold text-ink";
+    mes.textContent = `Mes ${fila.mes}`;
+    const pago = document.createElement("span");
+    pago.className = "font-roboto text-sm font-semibold text-ink";
+    pago.textContent = money2(fila.pago);
+    head.append(mes, pago);
+
+    const dl = document.createElement("dl");
+    dl.className = "mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs";
+    dl.append(
+      buildCardRow("Capital", money2(fila.capital)),
+      buildCardRow("Interés", money2(fila.interes)),
+      buildCardRow("IVA", money2(fila.iva)),
+      buildCardRow("Saldo final", money2(fila.saldoFinal))
+    );
+
+    const saldoInicial = document.createElement("div");
+    saldoInicial.className = "col-span-2 mt-1 flex justify-between gap-2 border-t border-border pt-1";
+    const dt = document.createElement("dt");
+    dt.className = "text-muted";
+    dt.textContent = "Saldo inicial";
+    const dd = document.createElement("dd");
+    dd.className = "text-ink";
+    dd.textContent = money2(fila.saldoInicial);
+    saldoInicial.append(dt, dd);
+    dl.append(saldoInicial);
+
+    li.append(head, dl);
+    return li;
+  };
+
+  const renderTable = () => {
+    if (tbody) tbody.replaceChildren(...lastResult.tabla.map(buildTableRow));
+    if (list) list.replaceChildren(...lastResult.tabla.map(buildCard));
+  };
+
+  const render = (monto: number, plazo: number) => {
+    lastResult = buildLoan({
+      monto,
+      plazo,
+      tasaAnual: loanConfig.tasaAnual,
+      ivaIntereses: loanConfig.ivaIntereses,
+      comision: loanConfig.comision,
+    });
+
+    if (amountDisplay) amountDisplay.textContent = formatMXN(monto);
+    if (range) {
+      range.value = String(monto);
+      range.setAttribute("aria-valuetext", `${nf.format(monto)} pesos`);
+    }
+    if (numberInput && document.activeElement !== numberInput) numberInput.value = String(monto);
+
+    setText("[data-r-monto]", formatMXN(monto));
+    setText(
+      "[data-r-tasa]",
+      `${(loanConfig.tasaAnual * 100).toLocaleString("es-MX", { maximumFractionDigits: 2 })}%`
+    );
+    setText("[data-r-interes]", money2(lastResult.interesTotal));
+    setText("[data-r-iva]", money2(lastResult.ivaTotal));
+    setText("[data-r-pago]", money2(lastResult.pagoMensual));
+    setText("[data-r-pago-sticky]", money2(lastResult.pagoMensual));
+    setText("[data-r-total]", money2(lastResult.totalPagar));
+    setText("[data-r-cat]", `${(lastResult.cat * 100).toFixed(2)}%`);
+
+    const capital = monto;
+    const interes = lastResult.interesTotal + lastResult.ivaTotal;
+    const total = capital + interes || 1;
+    const capitalBar = document.querySelector<HTMLElement>("[data-bar-capital]");
+    const interesBar = document.querySelector<HTMLElement>("[data-bar-interes]");
+    if (capitalBar) capitalBar.style.width = `${((capital / total) * 100).toFixed(2)}%`;
+    if (interesBar) interesBar.style.width = `${((interes / total) * 100).toFixed(2)}%`;
+    setText("[data-legend-capital]", formatMXN(capital));
+    setText("[data-legend-interes]", money2(interes));
+
+    renderTable();
+
+    if (live) {
+      if (liveTimer) window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        live.textContent = `Simulación de ${formatMXN(monto)} a ${plazo} meses. Mensualidad ${money2(
+          lastResult.pagoMensual
+        )}. Total a pagar ${money2(lastResult.totalPagar)}. CAT ${(lastResult.cat * 100).toFixed(
+          2
+        )} por ciento.`;
+      }, 300);
+    }
+  };
+
+  const getMonto = (): number => (range ? Number(range.value) : loanConfig.montoInicial);
+
+  range?.addEventListener("input", () => {
+    const monto = clampSnap(Number(range.value));
+    render(monto, currentPlazo());
+  });
+
+  numberInput?.addEventListener("input", () => {
+    const monto = clampSnap(Number(numberInput.value));
+    render(monto, currentPlazo());
+  });
+
+  numberInput?.addEventListener("blur", () => {
+    numberInput.value = String(clampSnap(Number(numberInput.value)));
+  });
+
+  plazoRadios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      if (radio.checked) render(getMonto(), Number(radio.value));
+    });
+  });
+
+  // Bottom sheet.
+  const sheet = document.querySelector<HTMLElement>("[data-sim-sheet]");
+  const summary = document.querySelector<HTMLElement>("[data-sim-summary]");
+  const success = document.querySelector<HTMLElement>("[data-sim-success]");
+
+  const resetSheetViews = () => {
+    if (summary) summary.hidden = false;
+    if (success) success.hidden = true;
+  };
+
+  const closeSheet = () => {
+    if (sheet) sheet.hidden = true;
+    resetSheetViews();
+  };
+
+  const openSheet = () => {
+    if (!sheet) return;
+    resetSheetViews();
+    setText("[data-s-monto]", formatMXN(getMonto()));
+    setText("[data-s-plazo]", `${currentPlazo()} meses`);
+    setText("[data-s-pago]", money2(lastResult.pagoMensual));
+    setText("[data-s-total]", money2(lastResult.totalPagar));
+    setText("[data-s-cat]", `${(lastResult.cat * 100).toFixed(2)}%`);
+    sheet.hidden = false;
+    document.querySelector<HTMLButtonElement>("[data-sim-cancel]")?.focus();
+  };
+
+  document.querySelectorAll("[data-sim-open]").forEach((button) => {
+    button.addEventListener("click", openSheet);
+  });
+
+  document.querySelector("[data-sim-cancel]")?.addEventListener("click", closeSheet);
+  document.querySelector("[data-sim-backdrop]")?.addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) closeSheet();
+  });
+
+  document.querySelector("[data-sim-confirm]")?.addEventListener("click", () => {
+    if (summary) summary.hidden = true;
+    if (success) success.hidden = false;
+    setText(
+      "[data-s-success]",
+      `${formatMXN(getMonto())} a ${currentPlazo()} meses · ${money2(
+        lastResult.pagoMensual
+      )} al mes.`
+    );
+    const check = document.querySelector<SVGElement>("[data-sim-check]");
+    if (check) {
+      check.classList.remove("sim-check-run");
+      // Reinicia la animación del check.
+      void check.getBoundingClientRect();
+      check.classList.add("sim-check-run");
+    }
+  });
+
+  document.querySelector("[data-sim-close]")?.addEventListener("click", closeSheet);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && sheet && !sheet.hidden) closeSheet();
+  });
+
+  render(loanConfig.montoInicial, loanConfig.plazoInicial);
+</script>

@@ -60,28 +60,60 @@ export const movements: Movement[] = [
   },
 ];
 
-// Condiciones del producto (valores provisionales de demostración).
+// Parámetros del simulador (valores provisionales de demostración).
+// Cambiar cualquier valor aquí actualiza el simulador y los Avisos.
+export interface LoanConfig {
+  tasaAnual: number;
+  ivaIntereses: number;
+  comision: number;
+  montoMinimo: number;
+  montoMaximo: number;
+  montoInicial: number;
+  pasoMonto: number;
+  plazos: number[];
+  plazoInicial: number;
+}
+
+export const loanConfig: LoanConfig = {
+  tasaAnual: 0.22,
+  ivaIntereses: 0.16,
+  comision: 0,
+  montoMinimo: 1000,
+  montoMaximo: 8000,
+  montoInicial: 5000,
+  pasoMonto: 500,
+  plazos: [3, 6, 9],
+  plazoInicial: 6,
+};
+
+const money = (value: number): string => `$${value.toLocaleString("es-MX")}`;
+const percent = (value: number): string =>
+  `${(value * 100).toLocaleString("es-MX", { maximumFractionDigits: 2 })}%`;
+
+// Condiciones del producto derivadas de loanConfig.
 export const interestRates: ConditionRow[] = [
-  { label: "Tasa fija anual — Tarjeta Semilla", value: "22%" },
-  { label: "Tasa fija anual — Tarjeta Escena", value: "17%" },
+  { label: "Tasa fija anual aplicable", value: percent(loanConfig.tasaAnual) },
+  { label: "IVA sobre intereses", value: percent(loanConfig.ivaIntereses) },
   { label: "Tasa moratoria", value: "No aplica en este prototipo" },
 ];
 
 export const cat = {
-  value: "47.9% – 58.4% sin IVA",
-  note: "CAT promedio. El costo depende del monto y plazo elegidos.",
+  note: "CAT demostrativo. El costo depende del monto y plazo simulado.",
 };
 
 export const fees: ConditionRow[] = [
-  { label: "Comisión por apertura", value: "$0" },
+  { label: "Comisión por apertura", value: money(loanConfig.comision) },
   { label: "Anualidad", value: "$0" },
   { label: "Comisión por disposición", value: "No aplica en este prototipo" },
 ];
 
 export const terms: ConditionRow[] = [
-  { label: "Monto mínimo", value: "$5,000 MXN" },
-  { label: "Monto máximo", value: "$70,000 MXN" },
-  { label: "Plazos disponibles", value: "6 a 36 meses" },
+  { label: "Monto mínimo", value: `${money(loanConfig.montoMinimo)} MXN` },
+  { label: "Monto máximo", value: `${money(loanConfig.montoMaximo)} MXN` },
+  {
+    label: "Plazos disponibles",
+    value: `${loanConfig.plazos.join(", ")} meses`,
+  },
   { label: "Día de pago", value: "15 de cada mes" },
 ];
 

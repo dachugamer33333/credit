@@ -6,10 +6,23 @@ import {
   contractReca,
   fees,
   interestRates,
+  loanConfig,
   privacyExampleText,
   recas,
   terms,
 } from "../../config/product";
+import { buildLoan } from "../../lib/loan";
+
+const catResult = buildLoan({
+  monto: loanConfig.montoInicial,
+  plazo: Math.max(...loanConfig.plazos),
+  tasaAnual: loanConfig.tasaAnual,
+  ivaIntereses: loanConfig.ivaIntereses,
+  comision: loanConfig.comision,
+});
+const catValue = `${(catResult.cat * 100).toLocaleString("es-MX", {
+  maximumFractionDigits: 2,
+})}%`;
 
 const sections = [
   { id: "tasas", title: "Tasas de interés aplicables", kind: "rows", rows: interestRates },
@@ -91,9 +104,9 @@ const sections = [
               {section.kind === "cat" && (
                 <div class="flex flex-col gap-2">
                   <div class="flex items-start justify-between gap-3">
-                    <span class="text-muted">CAT promedio</span>
+                    <span class="text-muted">CAT (demostrativo)</span>
                     <span class="shrink-0 text-right font-roboto font-medium text-ink">
-                      {cat.value}
+                      {catValue}
                     </span>
                   </div>
                   <div>
