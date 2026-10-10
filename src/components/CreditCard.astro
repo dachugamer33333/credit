@@ -1,4 +1,6 @@
 ---
+import heroNames from "../data/hero-names.json";
+
 interface Props {
   name?: string;
   variant?: "hero" | "app";
@@ -6,6 +8,7 @@ interface Props {
 
 const { name = "JUAN PÉREZ", variant = "app" } = Astro.props;
 const isHero = variant === "hero";
+const typewriterNames = [...heroNames.personas, ...heroNames.proyectos];
 ---
 
 <div
@@ -61,6 +64,17 @@ const isHero = variant === "hero";
       </div>
 
       <div>
+        {
+          isHero && (
+            <p class="mb-2 min-h-[1.2em] font-mono text-xs uppercase leading-none tracking-[0.3em] text-white/85 sm:text-sm">
+              <span
+                data-typewriter
+                data-names={JSON.stringify(typewriterNames)}
+                aria-hidden="true">{typewriterNames[0]}</span
+              ><span data-typewriter-cursor class="typewriter-cursor" aria-hidden="true"></span>
+            </p>
+          )
+        }
         <p class="font-mono text-sm tracking-[0.35em] text-white/85 sm:text-base">
           •••• •••• •••• 縁
         </p>
@@ -128,4 +142,112 @@ const isHero = variant === "hero";
     });
     return () => tween.kill();
   });
+</script>
+
+<style>
+  .typewriter-cursor {
+    display: inline-block;
+    width: 0.5ch;
+    height: 1em;
+    margin-left: 1px;
+    background: currentColor;
+    vertical-align: -0.12em;
+    animation: typewriter-blink 1s steps(1) infinite;
+  }
+
+  @keyframes typewriter-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .typewriter-cursor {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const typewriter = document.querySelector<HTMLElement>("[data-typewriter]");
+
+  if (typewriter) {
+    let names: string[] = [];
+    try {
+      names = JSON.parse(typewriter.dataset.names ?? "[]");
+    } catch {
+      names = [];
+    }
+    if (names.length === 0) names = [typewriter.textContent ?? ""];
+
+    const cursor = document.querySelector<HTMLElement>("[data-typewriter-cursor]");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduce) {
+      typewriter.textContent = names[0];
+      cursor?.remove();
+    } else {
+      let index = 0;
+      let char = 0;
+      let deleting = false;
+      let active = false;
+      let inView = false;
+      let timer = 0;
+
+      const schedule = (ms: number) => {
+        if (active) timer = window.setTimeout(step, ms);
+      };
+
+      const step = () => {
+        const current = names[index % names.length];
+        if (!deleting) {
+          char++;
+          typewriter.textContent = current.slice(0, char);
+          if (char >= current.length) {
+            deleting = true;
+            schedule(1300);
+          } else {
+            schedule(70);
+          }
+        } else {
+          char--;
+          typewriter.textContent = current.slice(0, char);
+          if (char <= 0) {
+            deleting = false;
+            index = (index + 1) % names.length;
+            schedule(300);
+          } else {
+            schedule(40);
+          }
+        }
+      };
+
+      const start = () => {
+        if (active) return;
+        active = true;
+        schedule(200);
+      };
+
+      const stop = () => {
+        active = false;
+        window.clearTimeout(timer);
+      };
+
+      const target = typewriter.closest("[data-card]") ?? typewriter;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          inView = entries[0]?.isIntersecting ?? false;
+          if (inView && !document.hidden) start();
+          else stop();
+        },
+        { threshold: 0.2 }
+      );
+      observer.observe(target);
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && inView) start();
+        else stop();
+      });
+    }
+  }
 </script>
