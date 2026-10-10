@@ -1,4 +1,14 @@
-export type RouteKey = "inicio" | "simulador" | "perfil" | "avisos";
+export type RouteKey =
+  | "inicio"
+  | "simulador"
+  | "perfil"
+  | "avisos"
+  | "pagar-hub"
+  | "pagar-credito"
+  | "pagar-digital"
+  | "pagar-servicios"
+  | "pagar-recarga"
+  | "comprobante";
 export type NavKey = "inicio" | "prestamo" | "perfil";
 
 const HASH_TO_SCREEN: Record<string, RouteKey> = {
@@ -8,6 +18,12 @@ const HASH_TO_SCREEN: Record<string, RouteKey> = {
   "#/simulador": "simulador",
   "#/perfil": "perfil",
   "#/perfil/avisos": "avisos",
+  "#/pagar": "pagar-hub",
+  "#/pagar/credito": "pagar-credito",
+  "#/pagar/digital": "pagar-digital",
+  "#/pagar/servicios": "pagar-servicios",
+  "#/pagar/recarga": "pagar-recarga",
+  "#/comprobante": "comprobante",
 };
 
 const SCREEN_TO_NAV: Record<RouteKey, NavKey> = {
@@ -15,6 +31,12 @@ const SCREEN_TO_NAV: Record<RouteKey, NavKey> = {
   simulador: "prestamo",
   perfil: "perfil",
   avisos: "perfil",
+  "pagar-hub": "inicio",
+  "pagar-credito": "inicio",
+  "pagar-digital": "inicio",
+  "pagar-servicios": "inicio",
+  "pagar-recarga": "inicio",
+  comprobante: "inicio",
 };
 
 export const routeFromHash = (hash: string): RouteKey => HASH_TO_SCREEN[hash] ?? "inicio";

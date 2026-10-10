@@ -2,13 +2,8 @@
 import CreditCard from "../CreditCard.astro";
 import TopBar from "./TopBar.astro";
 import DemoTag from "./DemoTag.astro";
-import { credit, movements } from "../../config/product";
-import {
-  formatDateEsMx,
-  formatMXN,
-  getMovementDate,
-  getNextPaymentDate,
-} from "../../lib/format";
+import { credit } from "../../config/product";
+import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
 
 const available = formatMXN(credit.available);
 const limit = formatMXN(credit.limit);
@@ -18,12 +13,6 @@ const usagePct = Math.round((credit.used / credit.limit) * 100);
 const nextPayment = getNextPaymentDate(new Date(), credit.paymentDay);
 const nextPaymentLabel = formatDateEsMx(nextPayment);
 const nextPaymentAmount = formatMXN(credit.nextPaymentAmount);
-
-const recent = movements.map((m) => ({
-  ...m,
-  dateLabel: formatDateEsMx(getMovementDate(m.daysAgo), { day: "numeric", month: "short" }),
-  amountLabel: `${m.direction === "debito" ? "−" : "+"}${formatMXN(m.amount)}`,
-}));
 ---
 
 <section data-screen="inicio" class="app-section" aria-hidden="false">
@@ -66,7 +55,9 @@ const recent = movements.map((m) => ({
           <div class="flex items-end justify-between gap-3">
             <div>
               <p class="text-xs uppercase tracking-[0.16em] text-muted">Crédito disponible</p>
-              <p class="font-display text-3xl font-bold leading-tight text-ink">{available}</p>
+              <p data-available class="font-display text-3xl font-bold leading-tight text-ink">
+                {available}
+              </p>
             </div>
             <div class="text-right">
               <p class="text-xs uppercase tracking-[0.16em] text-muted">Límite</p>
@@ -75,6 +66,7 @@ const recent = movements.map((m) => ({
           </div>
           <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200">
             <span
+              data-usage-bar
               class="block h-full rounded-full bg-accent"
               style={`width:${usagePct}%`}
               role="progressbar"
@@ -85,7 +77,7 @@ const recent = movements.map((m) => ({
             ></span>
           </div>
           <div class="mt-2 flex items-center justify-between">
-            <span class="text-xs text-muted">Usado: {used}</span>
+            <span class="text-xs text-muted">Usado: <span data-used>{used}</span></span>
             <DemoTag />
           </div>
         </div>
@@ -205,39 +197,20 @@ const recent = movements.map((m) => ({
             </div>
             <div class="rounded-xl bg-bg px-2 py-2">
               <dt class="text-[0.65rem] uppercase tracking-wide text-muted">Usado</dt>
-              <dd class="font-roboto text-sm font-semibold text-ink">{used}</dd>
+              <dd data-summary-used class="font-roboto text-sm font-semibold text-ink">{used}</dd>
             </div>
             <div class="rounded-xl bg-bg px-2 py-2">
               <dt class="text-[0.65rem] uppercase tracking-wide text-muted">Disponible</dt>
-              <dd class="font-roboto text-sm font-semibold text-ink">{available}</dd>
+              <dd data-summary-available class="font-roboto text-sm font-semibold text-ink">
+                {available}
+              </dd>
             </div>
           </dl>
 
           <h4 class="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted">
             Movimientos recientes
           </h4>
-          <ul class="mt-2 flex flex-col divide-y divide-border">
-            {
-              recent.map((m) => (
-                <li class="flex items-center justify-between gap-3 py-2.5">
-                  <span class="min-w-0">
-                    <span class="block truncate font-roboto text-sm text-ink">
-                      {m.description}
-                    </span>
-                    <span class="block text-xs text-muted">{m.dateLabel}</span>
-                  </span>
-                  <span
-                    class:list={[
-                      "shrink-0 font-roboto text-sm font-semibold",
-                      m.direction === "debito" ? "text-ink" : "text-emerald-600",
-                    ]}
-                  >
-                    {m.amountLabel}
-                  </span>
-                </li>
-              ))
-            }
-          </ul>
+          <ul data-movements class="mt-2 flex flex-col divide-y divide-border"></ul>
         </div>
 
         <!-- Atajo al simulador -->
@@ -334,8 +307,15 @@ const recent = movements.map((m) => ({
   import { initRipple } from "../../lib/ripple";
   import { showSnackbar } from "../../lib/snackbar";
   import { buildGreeting, getStoredName } from "../../lib/user";
-  import { formatDateEsMx, getNextPaymentDate } from "../../lib/format";
+  import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
   import { credit } from "../../config/product";
+  import {
+    getState,
+    subscribe,
+    toggleFreeze,
+    type AccountMovement,
+    type AccountState,
+  } from "../../lib/account";
 
   initRipple();
 
@@ -349,23 +329,82 @@ const recent = movements.map((m) => ({
     nextPayment.textContent = formatDateEsMx(getNextPaymentDate(new Date(), credit.paymentDay));
   }
 
-  // Acciones.
-  document.querySelectorAll<HTMLElement>("[data-action]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const action = button.dataset.action;
-      if (action === "congelar") {
-        const wrap = document.querySelector<HTMLElement>("[data-freeze-wrap]");
-        const label = button.querySelector<HTMLElement>("[data-freeze-label]");
-        const live = document.querySelector<HTMLElement>("[data-freeze-live]");
-        const frozen = wrap?.getAttribute("data-frozen") === "true";
-        const next = !frozen;
-        wrap?.setAttribute("data-frozen", String(next));
-        button.setAttribute("aria-pressed", String(next));
-        if (label) label.textContent = next ? "Descongelar" : "Congelar";
-        if (live) live.textContent = next ? "Tarjeta congelada" : "Tarjeta activa";
-        return;
-      }
-      showSnackbar("Función demostrativa: no incluida en este prototipo");
-    });
+  const freezeBtn = document.querySelector<HTMLElement>('[data-action="congelar"]');
+  const freezeLabel = document.querySelector<HTMLElement>("[data-freeze-label]");
+  const freezeLive = document.querySelector<HTMLElement>("[data-freeze-live]");
+  const wrap = document.querySelector<HTMLElement>("[data-freeze-wrap]");
+  const availableEl = document.querySelector<HTMLElement>("[data-available]");
+  const usedEl = document.querySelector<HTMLElement>("[data-used]");
+  const summaryUsed = document.querySelector<HTMLElement>("[data-summary-used]");
+  const summaryAvailable = document.querySelector<HTMLElement>("[data-summary-available]");
+  const usageBar = document.querySelector<HTMLElement>("[data-usage-bar]");
+  const movementsEl = document.querySelector<HTMLElement>("[data-movements]");
+
+  const renderMovements = (movimientos: AccountMovement[]) => {
+    if (!movementsEl) return;
+    movementsEl.replaceChildren(
+      ...movimientos.slice(0, 3).map((m) => {
+        const abono = m.tipo === "pago";
+        const li = document.createElement("li");
+        li.className = "flex items-center justify-between gap-3 py-2.5";
+
+        const left = document.createElement("span");
+        left.className = "min-w-0";
+        const concepto = document.createElement("span");
+        concepto.className = "block truncate font-roboto text-sm text-ink";
+        concepto.textContent = m.concepto;
+        const fecha = document.createElement("span");
+        fecha.className = "block text-xs text-muted";
+        fecha.textContent = formatDateEsMx(new Date(m.fecha), { day: "numeric", month: "short" });
+        left.append(concepto, fecha);
+
+        const amount = document.createElement("span");
+        amount.className = `shrink-0 font-roboto text-sm font-semibold ${
+          abono ? "text-emerald-600" : "text-ink"
+        }`;
+        amount.textContent = `${abono ? "+" : "−"}${formatMXN(m.monto)}`;
+
+        li.append(left, amount);
+        return li;
+      })
+    );
+  };
+
+  const render = (snapshot: AccountState) => {
+    const usado = snapshot.usado;
+    const disp = credit.limit - usado;
+    const pct = Math.min(100, Math.round((usado / credit.limit) * 100));
+
+    if (availableEl) availableEl.textContent = formatMXN(disp);
+    if (usedEl) usedEl.textContent = formatMXN(usado);
+    if (summaryUsed) summaryUsed.textContent = formatMXN(usado);
+    if (summaryAvailable) summaryAvailable.textContent = formatMXN(disp);
+    if (usageBar) {
+      usageBar.style.width = `${pct}%`;
+      usageBar.setAttribute("aria-valuenow", String(pct));
+      usageBar.setAttribute("aria-label", `Uso del crédito: ${pct}%`);
+    }
+
+    if (wrap) wrap.setAttribute("data-frozen", String(snapshot.frozen));
+    if (freezeBtn) freezeBtn.setAttribute("aria-pressed", String(snapshot.frozen));
+    if (freezeLabel) freezeLabel.textContent = snapshot.frozen ? "Descongelar" : "Congelar";
+
+    renderMovements(snapshot.movimientos);
+  };
+
+  subscribe(render);
+  render(getState());
+
+  freezeBtn?.addEventListener("click", () => {
+    const frozen = toggleFreeze();
+    if (freezeLive) freezeLive.textContent = frozen ? "Tarjeta congelada" : "Tarjeta activa";
+  });
+
+  document.querySelector('[data-action="pagar"]')?.addEventListener("click", () => {
+    window.location.hash = "#/pagar";
+  });
+
+  document.querySelector('[data-action="transferir"]')?.addEventListener("click", () => {
+    showSnackbar("Función demostrativa: no incluida en este prototipo");
   });
 </script>

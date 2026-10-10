@@ -7,6 +7,13 @@ import SimulatorScreen from "../../components/app/SimulatorScreen.astro";
 import ProfileScreen from "../../components/app/ProfileScreen.astro";
 import LegalScreen from "../../components/app/LegalScreen.astro";
 import BiometricGate from "../../components/app/BiometricGate.astro";
+import PayHub from "../../components/app/PayHub.astro";
+import PayCard from "../../components/app/PayCard.astro";
+import PayDigital from "../../components/app/PayDigital.astro";
+import PayServices from "../../components/app/PayServices.astro";
+import PayTopup from "../../components/app/PayTopup.astro";
+import Receipt from "../../components/app/Receipt.astro";
+import ConfirmSheet from "../../components/app/ConfirmSheet.astro";
 ---
 
 <AppLayout>
@@ -25,6 +32,12 @@ import BiometricGate from "../../components/app/BiometricGate.astro";
         <SimulatorScreen />
         <ProfileScreen />
         <LegalScreen />
+        <PayHub />
+        <PayCard />
+        <PayDigital />
+        <PayServices />
+        <PayTopup />
+        <Receipt />
       </main>
 
       <p
@@ -38,6 +51,8 @@ import BiometricGate from "../../components/app/BiometricGate.astro";
   </div>
 
   <BiometricGate />
+
+  <ConfirmSheet />
 
   <!-- Bottom sheet de nombre (primera visita en táctil / "Cambiar mi nombre") -->
   <div data-name-sheet hidden>

@@ -1,0 +1,248 @@
+---
+import TopBar from "./TopBar.astro";
+import DemoTag from "./DemoTag.astro";
+import AppContent from "./AppContent.astro";
+import { credit, paymentConfig } from "../../config/product";
+import { pagoMinimo } from "../../lib/payments";
+import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
+
+const deudaInicial = credit.used;
+const fechaInicial = formatDateEsMx(getNextPaymentDate(new Date(), credit.paymentDay));
+const minimoInicial = pagoMinimo(
+  deudaInicial,
+  paymentConfig.pagoMinimoPorcentaje,
+  paymentConfig.pagoMinimoPiso
+);
+---
+
+<section data-screen="pagar-credito" hidden class="app-section" aria-hidden="true">
+  <TopBar title="Pagar mi tarjeta" backHref="#/pagar" backLabel="Volver a Pagar" flush />
+
+  <AppContent>
+    <!-- Deuda -->
+    <div class="rounded-2xl border border-border bg-surface p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-xs uppercase tracking-[0.16em] text-muted">Deuda actual</p>
+        <DemoTag />
+      </div>
+      <p data-deuda class="mt-1 font-display text-3xl font-bold text-ink">
+        {formatMXN(deudaInicial)}
+      </p>
+      <div class="mt-3 flex items-center justify-between gap-3 text-sm">
+        <span class="text-muted">Fecha límite de pago</span>
+        <span data-fecha class="font-roboto font-medium text-ink">{fechaInicial}</span>
+      </div>
+    </div>
+
+    <!-- Al corriente -->
+    <div
+      data-al-corriente
+      hidden
+      class="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center"
+    >
+      <span class="grid h-12 w-12 place-items-center rounded-full bg-emerald-500 text-white">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </span>
+      <p class="font-roboto text-base font-semibold text-emerald-700">Estás al corriente</p>
+      <p class="text-sm text-emerald-700/80">No tienes saldo pendiente por pagar.</p>
+    </div>
+
+    <!-- Formulario -->
+    <div data-pay-form class="mt-5 flex flex-col gap-4">
+      <div class="rounded-2xl border border-border bg-surface p-4">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs uppercase tracking-[0.16em] text-muted">Monto a pagar</p>
+          <DemoTag />
+        </div>
+
+        <div role="radiogroup" aria-label="Monto a pagar" class="mt-3 flex flex-col gap-2">
+          <button
+            type="button"
+            role="radio"
+            aria-checked="true"
+            data-opt="min"
+            data-ripple
+            class="pay-option relative flex min-h-12 items-center justify-between gap-3 overflow-hidden rounded-xl border border-border px-4 text-left"
+          >
+            <span class="text-sm font-medium text-ink">Pago mínimo</span>
+            <span data-min-value class="font-roboto text-sm font-medium text-ink"
+              >{formatMXN(minimoInicial)}</span
+            >
+          </button>
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            data-opt="total"
+            data-ripple
+            class="pay-option relative flex min-h-12 items-center justify-between gap-3 overflow-hidden rounded-xl border border-border px-4 text-left"
+          >
+            <span class="text-sm font-medium text-ink">Pago para no generar intereses</span>
+            <span data-total-value class="font-roboto text-sm font-medium text-ink"
+              >{formatMXN(deudaInicial)}</span
+            >
+          </button>
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            data-opt="otro"
+            data-ripple
+            class="pay-option relative flex min-h-12 items-center justify-between gap-3 overflow-hidden rounded-xl border border-border px-4 text-left"
+          >
+            <span class="text-sm font-medium text-ink">Otro monto</span>
+          </button>
+        </div>
+
+        <div data-otro-wrap hidden class="mt-3">
+          <label for="otro-monto" class="text-xs text-muted">Monto (MXN)</label>
+          <input
+            id="otro-monto"
+            data-otro
+            type="number"
+            min="1"
+            step="1"
+            inputmode="numeric"
+            placeholder="0"
+            class="mt-1 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-base text-ink"
+          />
+        </div>
+
+        <p data-error hidden class="mt-3 text-sm font-medium text-red-600"></p>
+      </div>
+
+      <button
+        type="button"
+        data-submit
+        data-ripple
+        class="relative flex min-h-12 items-center justify-center overflow-hidden rounded-full bg-accent px-6 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover"
+      >
+        Pagar
+      </button>
+    </div>
+  </AppContent>
+</section>
+
+<style>
+  .pay-option[aria-checked="true"] {
+    border-color: var(--color-accent);
+    background: color-mix(in oklab, var(--color-accent) 8%, transparent);
+  }
+</style>
+
+<script>
+  import { getState, payDown, subscribe } from "../../lib/account";
+  import { openConfirm } from "../../lib/confirm";
+  import { setReceipt } from "../../lib/receipt";
+  import { folio8, pagoMinimo } from "../../lib/payments";
+  import { credit, paymentConfig } from "../../config/product";
+  import { formatDateEsMx, formatMXN, getNextPaymentDate } from "../../lib/format";
+
+  const deudaEl = document.querySelector<HTMLElement>("[data-deuda]");
+  const fechaEl = document.querySelector<HTMLElement>("[data-fecha]");
+  const minEl = document.querySelector<HTMLElement>("[data-min-value]");
+  const totalEl = document.querySelector<HTMLElement>("[data-total-value]");
+  const corriente = document.querySelector<HTMLElement>("[data-al-corriente]");
+  const form = document.querySelector<HTMLElement>("[data-pay-form]");
+  const otroWrap = document.querySelector<HTMLElement>("[data-otro-wrap]");
+  const otroInput = document.querySelector<HTMLInputElement>("[data-otro]");
+  const errorEl = document.querySelector<HTMLElement>("[data-error]");
+  const submit = document.querySelector<HTMLButtonElement>("[data-submit]");
+  const options = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-opt]"));
+
+  let selected: "min" | "total" | "otro" = "min";
+  let deuda = getState().usado;
+
+  const pagoMin = () =>
+    pagoMinimo(deuda, paymentConfig.pagoMinimoPorcentaje, paymentConfig.pagoMinimoPiso);
+
+  const selectedAmount = (): number => {
+    if (selected === "min") return pagoMin();
+    if (selected === "total") return deuda;
+    return Number(otroInput?.value ?? 0);
+  };
+
+  const setOption = (value: "min" | "total" | "otro") => {
+    selected = value;
+    options.forEach((btn) => btn.setAttribute("aria-checked", String(btn.dataset.opt === value)));
+    if (otroWrap) otroWrap.hidden = value !== "otro";
+    if (value === "otro") otroInput?.focus();
+    render();
+  };
+
+  const render = () => {
+    deuda = getState().usado;
+    const min = pagoMin();
+    if (deudaEl) deudaEl.textContent = formatMXN(deuda);
+    if (fechaEl) fechaEl.textContent = formatDateEsMx(getNextPaymentDate(new Date(), credit.paymentDay));
+    if (minEl) minEl.textContent = formatMXN(min);
+    if (totalEl) totalEl.textContent = formatMXN(deuda);
+
+    const sinDeuda = deuda <= 0;
+    if (corriente) corriente.hidden = !sinDeuda;
+    if (form) form.hidden = sinDeuda;
+
+    const amount = selectedAmount();
+    let error = "";
+    if (!sinDeuda) {
+      if (selected === "otro") {
+        if (!Number.isFinite(amount) || amount <= 0) error = "Ingresa un monto mayor a $1.";
+        else if (amount > deuda) error = "El monto no puede ser mayor que tu deuda.";
+      }
+    }
+    if (errorEl) {
+      errorEl.hidden = !error;
+      errorEl.textContent = error;
+    }
+    if (submit) {
+      submit.disabled = sinDeuda || !!error;
+      submit.textContent = `Pagar ${formatMXN(sinDeuda ? 0 : Math.max(0, amount))}`;
+    }
+  };
+
+  options.forEach((btn) => {
+    btn.addEventListener("click", () => setOption(btn.dataset.opt as "min" | "total" | "otro"));
+    btn.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        setOption(btn.dataset.opt as "min" | "total" | "otro");
+      }
+    });
+  });
+
+  otroInput?.addEventListener("input", render);
+
+  submit?.addEventListener("click", async () => {
+    const amount = selectedAmount();
+    if (amount <= 0 || amount > getState().usado) return;
+
+    const ok = await openConfirm({
+      title: "Confirmar pago",
+      rows: [
+        { label: "Abono a tu tarjeta", value: formatMXN(amount) },
+        { label: "Deuda después del pago", value: formatMXN(Math.max(0, getState().usado - amount)) },
+      ],
+      confirmLabel: `Pagar ${formatMXN(amount)}`,
+    });
+    if (!ok) return;
+
+    const aplicado = payDown(amount, "Pago a la tarjeta");
+    if (aplicado <= 0) return;
+
+    setReceipt({
+      tipo: "Pago a la tarjeta",
+      monto: aplicado,
+      concepto: "Abono a tu línea de crédito",
+      fecha: new Date().toISOString(),
+      folio: folio8(),
+    });
+    window.location.replace("#/comprobante");
+  });
+
+  subscribe(render);
+  render();
+</script>

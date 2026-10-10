@@ -171,6 +171,45 @@ const initialEmail = emailFromName(DEFAULT_NAME);
           </svg>
         </button>
       </li>
+      <li class="border-t border-border">
+        <button
+          type="button"
+          data-reset
+          data-ripple
+          class="relative flex min-h-14 w-full items-center justify-between gap-3 overflow-hidden px-4 py-3 text-left transition duration-200 hover:bg-bg"
+        >
+          <span class="flex items-center gap-3">
+            <span class="grid h-9 w-9 place-items-center rounded-full bg-bg text-ink">
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </span>
+            <span class="font-roboto text-sm font-medium text-ink">Restablecer demo</span>
+          </span>
+          <svg
+            class="h-4 w-4 shrink-0 text-muted"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
+      </li>
     </ul>
 
     <p class="mt-4 text-center text-xs text-muted">Los datos de este perfil son ficticios.</p>
@@ -180,6 +219,8 @@ const initialEmail = emailFromName(DEFAULT_NAME);
 <script>
   import { initRipple } from "../../lib/ripple";
   import { emailFromName, getStoredName } from "../../lib/user";
+  import { reset } from "../../lib/account";
+  import { openConfirm } from "../../lib/confirm";
 
   initRipple();
 
@@ -191,5 +232,17 @@ const initialEmail = emailFromName(DEFAULT_NAME);
 
   document.querySelector("[data-logout]")?.addEventListener("click", () => {
     document.dispatchEvent(new CustomEvent("encredit:lock", { detail: { hash: "#/inicio" } }));
+  });
+
+  document.querySelector("[data-reset]")?.addEventListener("click", async () => {
+    const ok = await openConfirm({
+      title: "Restablecer demo",
+      rows: [
+        { label: "Saldo y movimientos", value: "Valores iniciales" },
+        { label: "Tarjeta", value: "Descongelada" },
+      ],
+      confirmLabel: "Restablecer",
+    });
+    if (ok) reset();
   });
 </script>

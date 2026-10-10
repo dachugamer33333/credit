@@ -5,19 +5,35 @@ interface Props {
   backHref?: string;
   backLabel?: string;
   homeHref?: string;
+  flush?: boolean;
 }
 
-const { title = "", brand = false, backHref, backLabel = "Volver", homeHref } = Astro.props;
+const {
+  title = "",
+  brand = false,
+  backHref,
+  backLabel = "Volver",
+  homeHref,
+  flush = false,
+} = Astro.props;
 ---
 
 <header class="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
-  <div class="mx-auto flex min-h-14 w-full max-w-[560px] items-center gap-1 px-2">
+  <div
+    class:list={[
+      "mx-auto flex min-h-14 w-full max-w-[560px] items-center gap-1",
+      flush ? "px-4" : "px-2",
+    ]}
+  >
     {
       backHref && (
         <a
           href={backHref}
           aria-label={backLabel}
-          class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink transition duration-200 hover:bg-bg"
+          class:list={[
+            "inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink transition duration-200 hover:bg-bg",
+            flush && "-ml-3",
+          ]}
         >
           <svg
             class="h-5 w-5"
@@ -37,7 +53,12 @@ const { title = "", brand = false, backHref, backLabel = "Volver", homeHref } = 
 
     {
       brand ? (
-        <span class="flex min-w-0 flex-1 items-center gap-2.5 px-1 py-2">
+        <span
+          class:list={[
+            "flex min-w-0 flex-1 items-center gap-2.5 py-2",
+            flush ? "px-0" : "px-1",
+          ]}
+        >
           <span class="font-kanji text-xl leading-none text-ink" aria-hidden="true">
             縁
           </span>
@@ -56,7 +77,10 @@ const { title = "", brand = false, backHref, backLabel = "Volver", homeHref } = 
         <h1
           data-screen-title
           tabindex="-1"
-          class="min-w-0 flex-1 truncate px-1 font-roboto text-lg font-medium text-ink"
+          class:list={[
+            "min-w-0 flex-1 truncate font-roboto text-lg font-medium text-ink",
+            flush ? "px-0" : "px-1",
+          ]}
         >
           {title}
         </h1>

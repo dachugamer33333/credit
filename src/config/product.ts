@@ -33,6 +33,19 @@ export const credit = {
   nextPaymentAmount: 850,
 } as const;
 
+// Parámetros de pago (demostración).
+export const paymentConfig = {
+  pagoMinimoPorcentaje: 0.1,
+  pagoMinimoPiso: 100,
+} as const;
+
+// Tarjeta virtual ficticia (demostración).
+export const virtualCard = {
+  number: "4821 0000 1234 4821",
+  last4: "4821",
+  expiry: "12/29",
+} as const;
+
 // Movimientos recientes ficticios (relativos a hoy para que no envejezcan).
 export const movements: Movement[] = [
   {

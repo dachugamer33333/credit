@@ -1,0 +1,221 @@
+---
+import TopBar from "./TopBar.astro";
+import DemoTag from "./DemoTag.astro";
+import FrozenNotice from "./FrozenNotice.astro";
+import AppContent from "./AppContent.astro";
+import { operators, topupAmounts } from "../../config/services";
+---
+
+<section data-screen="pagar-recarga" hidden class="app-section" aria-hidden="true">
+  <TopBar title="Recarga de tiempo aire" backHref="#/pagar" backLabel="Volver a Pagar" flush />
+
+  <AppContent>
+    <FrozenNotice />
+
+    <!-- Operador -->
+    <div class="mt-5">
+      <h3 class="font-roboto text-sm font-medium text-ink">Operador</h3>
+      <div data-operators class="mt-2 grid grid-cols-3 gap-2">
+        {
+          operators.map((op) => (
+            <button
+              type="button"
+              data-op={op.id}
+              class="op-chip flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-border bg-surface px-2 transition duration-200 hover:bg-bg"
+            >
+              <span class="grid h-7 w-7 place-items-center rounded-full bg-accent/10 font-roboto text-[0.6rem] font-bold text-accent">
+                {op.iniciales}
+              </span>
+              <span class="text-[0.7rem] font-medium text-ink">{op.nombre}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Número -->
+    <div class="mt-5">
+      <h3 class="font-roboto text-sm font-medium text-ink">Número a recargar</h3>
+      <label class="sr-only" for="topup-phone">Número de teléfono</label>
+      <input
+        id="topup-phone"
+        data-phone
+        type="tel"
+        inputmode="tel"
+        autocomplete="off"
+        placeholder="55 1234 5678"
+        class="mt-2 min-h-11 w-full rounded-xl border border-border bg-white px-4 text-base tracking-wider text-ink"
+      />
+      <p data-phone-count class="mt-1 text-xs text-muted">0 de 10 dígitos</p>
+    </div>
+
+    <!-- Monto -->
+    <div class="mt-5">
+      <h3 class="font-roboto text-sm font-medium text-ink">Monto</h3>
+      <div data-amounts class="mt-2 flex flex-wrap gap-2">
+        {
+          topupAmounts.map((amount) => (
+            <button type="button" data-amount={amount} class="amount-chip">
+              ${amount}
+            </button>
+          ))
+        }
+      </div>
+      <div class="mt-2">
+        <DemoTag label="Saldo y montos de demostración" />
+      </div>
+    </div>
+
+    <p data-error hidden class="mt-5 text-sm font-medium text-red-600"></p>
+
+    <button
+      type="button"
+      data-submit
+      disabled
+      data-ripple
+      class="relative mt-5 flex min-h-12 w-full items-center justify-center overflow-hidden rounded-full bg-accent px-6 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover disabled:bg-slate-300"
+    >
+      Recargar
+    </button>
+  </AppContent>
+</section>
+
+<style>
+  .op-chip[aria-pressed="true"] {
+    border-color: var(--color-accent);
+    background: color-mix(in oklab, var(--color-accent) 8%, transparent);
+  }
+
+  .amount-chip {
+    min-height: 3rem;
+    min-width: 4.5rem;
+    padding: 0 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .amount-chip[aria-pressed="true"] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+  }
+</style>
+
+<script>
+  import { charge, disponible, getState, subscribe } from "../../lib/account";
+  import { openConfirm } from "../../lib/confirm";
+  import { setReceipt } from "../../lib/receipt";
+  import { folio8 } from "../../lib/payments";
+  import { formatMXN } from "../../lib/format";
+  import { operators } from "../../config/services";
+  import { initRipple } from "../../lib/ripple";
+
+  initRipple();
+
+  const opButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-op]"));
+  const amountButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-amount]"));
+  const phoneInput = document.querySelector<HTMLInputElement>("[data-phone]");
+  const phoneCount = document.querySelector<HTMLElement>("[data-phone-count]");
+  const submit = document.querySelector<HTMLButtonElement>("[data-submit]");
+  const errorEl = document.querySelector<HTMLElement>("[data-error]");
+
+  let operatorId = "";
+  let amount = 0;
+
+  const formatPhone = (digits: string): string => {
+    let out = digits.slice(0, 2);
+    if (digits.length > 2) out += ` ${digits.slice(2, 6)}`;
+    if (digits.length > 6) out += ` ${digits.slice(6, 10)}`;
+    return out;
+  };
+
+  const digitsOf = (value: string): string => value.replace(/\D/g, "").slice(0, 10);
+
+  const operator = () => operators.find((o) => o.id === operatorId);
+
+  const update = () => {
+    const digits = digitsOf(phoneInput?.value ?? "");
+    if (phoneCount) phoneCount.textContent = `${digits.length} de 10 dígitos`;
+
+    const frozen = getState().frozen;
+    const complete = !!operatorId && digits.length === 10 && amount > 0;
+    if (submit) {
+      submit.disabled = !complete || frozen;
+      submit.textContent = complete ? `Recargar ${formatMXN(amount)}` : "Recargar";
+    }
+  };
+
+  opButtons.forEach((btn) =>
+    btn.addEventListener("click", () => {
+      operatorId = btn.dataset.op ?? "";
+      opButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.op === operatorId)));
+      update();
+    })
+  );
+
+  amountButtons.forEach((btn) =>
+    btn.addEventListener("click", () => {
+      amount = Number(btn.dataset.amount ?? 0);
+      amountButtons.forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.amount) === amount)));
+      update();
+    })
+  );
+
+  phoneInput?.addEventListener("input", () => {
+    const digits = digitsOf(phoneInput.value);
+    phoneInput.value = formatPhone(digits);
+    update();
+  });
+
+  submit?.addEventListener("click", async () => {
+    const digits = digitsOf(phoneInput?.value ?? "");
+    const op = operator();
+    if (!op || digits.length !== 10 || amount <= 0) return;
+    if (getState().frozen) return;
+
+    const ok = await openConfirm({
+      title: "Confirmar recarga",
+      rows: [
+        { label: "Operador", value: op.nombre },
+        { label: "Número", value: formatPhone(digits) },
+        { label: "Monto", value: formatMXN(amount) },
+      ],
+      confirmLabel: `Recargar ${formatMXN(amount)}`,
+    });
+    if (!ok) return;
+
+    if (amount > disponible()) {
+      if (errorEl) {
+        errorEl.hidden = false;
+        errorEl.textContent = "Excede tu crédito disponible";
+      }
+      return;
+    }
+
+    const res = charge(amount, `${op.nombre} · ${formatPhone(digits)}`, "recarga");
+    if (!res.ok) {
+      if (errorEl) {
+        errorEl.hidden = false;
+        errorEl.textContent = res.error === "frozen" ? "Tu tarjeta está congelada." : "Excede tu crédito disponible";
+      }
+      return;
+    }
+
+    setReceipt({
+      tipo: "Recarga de tiempo aire",
+      monto: amount,
+      concepto: `${op.nombre} · ${formatPhone(digits)}`,
+      fecha: new Date().toISOString(),
+      folio: folio8(),
+    });
+    window.location.replace("#/comprobante");
+  });
+
+  subscribe(update);
+  update();
+</script>

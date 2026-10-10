@@ -1,0 +1,215 @@
+---
+import TopBar from "./TopBar.astro";
+import CreditCard from "../CreditCard.astro";
+import DemoTag from "./DemoTag.astro";
+import FrozenNotice from "./FrozenNotice.astro";
+import AppContent from "./AppContent.astro";
+import { virtualCard } from "../../config/product";
+---
+
+<section data-screen="pagar-digital" hidden class="app-section" aria-hidden="true">
+  <TopBar title="Pago digital" backHref="#/pagar" backLabel="Volver a Pagar" flush />
+
+  <AppContent>
+    <FrozenNotice />
+
+    <div class="mt-5">
+      <CreditCard variant="app" name="JUAN PÉREZ" />
+    </div>
+
+    <div class="mt-5 rounded-2xl border border-border bg-surface p-4">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="font-roboto text-sm font-medium text-ink">Datos de tu tarjeta</h3>
+        <DemoTag label="Datos ficticios de demostración" />
+      </div>
+
+      <dl class="mt-3 flex flex-col gap-2.5 text-sm">
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-muted">Número</dt>
+          <dd data-num class="font-mono tracking-wider text-ink">•••• •••• •••• {virtualCard.last4}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-muted">Vencimiento</dt>
+          <dd data-exp class="font-mono tracking-wider text-ink">••/••</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-muted">CVV dinámico</dt>
+          <dd
+            data-cvv
+            class="rounded-lg bg-bg px-3 py-1 font-mono text-base font-semibold tracking-[0.3em] text-ink"
+          >
+            •••
+          </dd>
+        </div>
+      </dl>
+
+      <!-- Cuenta regresiva -->
+      <div class="mt-4 flex items-center gap-3">
+        <div class="relative grid h-12 w-12 place-items-center">
+          <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="#e2e8f0" stroke-width="4"></circle>
+            <circle
+              data-ring
+              cx="24"
+              cy="24"
+              r="20"
+              fill="none"
+              stroke="#2563eb"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-dasharray="125.664"
+              stroke-dashoffset="0"
+            ></circle>
+          </svg>
+          <span data-countdown class="font-mono text-[0.7rem] font-semibold text-ink">0:00</span>
+        </div>
+        <p class="text-xs leading-snug text-muted">
+          El CVV cambia cada 2 minutos y no está impreso en tu tarjeta física.
+        </p>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          data-reveal
+          data-ripple
+          class="relative inline-flex min-h-11 items-center justify-center overflow-hidden rounded-full bg-accent px-5 text-sm font-semibold text-white transition duration-200 hover:bg-accent-hover"
+        >
+          Mostrar datos
+        </button>
+        <button
+          type="button"
+          data-copy
+          data-ripple
+          class="relative inline-flex min-h-11 items-center justify-center overflow-hidden rounded-full border border-border px-5 text-sm font-semibold text-ink transition duration-200 hover:bg-slate-100"
+        >
+          Copiar CVV
+        </button>
+      </div>
+    </div>
+
+    <p data-live class="sr-only" aria-live="polite"></p>
+  </AppContent>
+</section>
+
+<script>
+  import { initRipple } from "../../lib/ripple";
+  import { showSnackbar } from "../../lib/snackbar";
+  import { virtualCard } from "../../config/product";
+  import {
+    VENTANA_MS,
+    cvvForWindow,
+    formatMMSS,
+    tiempoRestanteVentana,
+    ventanaActual,
+  } from "../../lib/payments";
+
+  initRipple();
+
+  const numEl = document.querySelector<HTMLElement>("[data-num]");
+  const expEl = document.querySelector<HTMLElement>("[data-exp]");
+  const cvvEl = document.querySelector<HTMLElement>("[data-cvv]");
+  const ring = document.querySelector<SVGCircleElement>("[data-ring]");
+  const countdown = document.querySelector<HTMLElement>("[data-countdown]");
+  const revealBtn = document.querySelector<HTMLButtonElement>("[data-reveal]");
+  const copyBtn = document.querySelector<HTMLButtonElement>("[data-copy]");
+  const live = document.querySelector<HTMLElement>("[data-live]");
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const CIRC = 2 * Math.PI * 20;
+
+  let revealed = false;
+  let currentCvv = cvvForWindow(ventanaActual());
+  let lastLabelUpdate = 0;
+
+  const announce = (message: string) => {
+    if (live) live.textContent = message;
+  };
+
+  const renderCvv = (animate: boolean) => {
+    if (!cvvEl) return;
+    cvvEl.textContent = revealed ? currentCvv : "•••";
+    if (animate && revealed && !reduce) {
+      cvvEl.classList.remove("cvv-flip");
+      void cvvEl.offsetWidth;
+      cvvEl.classList.add("cvv-flip");
+    }
+  };
+
+  const updateCountdown = () => {
+    const restante = tiempoRestanteVentana();
+    const ventana = ventanaActual();
+    if (countdown) countdown.textContent = formatMMSS(restante);
+    if (ring && !reduce) {
+      ring.setAttribute("stroke-dashoffset", String(CIRC * (1 - restante / VENTANA_MS)));
+    }
+
+    const now = Date.now();
+    if (ring && now - lastLabelUpdate > 10000) {
+      lastLabelUpdate = now;
+      const totalSeg = Math.ceil(restante / 1000);
+      const min = Math.floor(totalSeg / 60);
+      const seg = totalSeg % 60;
+      const label = `Tiempo restante: ${min} ${min === 1 ? "minuto" : "minutos"} ${seg} segundos`;
+      ring.setAttribute("aria-label", label);
+      ring.setAttribute("role", "img");
+    }
+
+    if (ventana !== ventanaActual()) return;
+    const nuevo = cvvForWindow(ventana);
+    if (nuevo !== currentCvv) {
+      currentCvv = nuevo;
+      renderCvv(true);
+    }
+  };
+
+  revealBtn?.addEventListener("click", () => {
+    revealed = !revealed;
+    if (numEl) numEl.textContent = revealed ? virtualCard.number : `•••• •••• •••• ${virtualCard.last4}`;
+    if (expEl) expEl.textContent = revealed ? virtualCard.expiry : "••/••";
+    revealBtn.textContent = revealed ? "Ocultar datos" : "Mostrar datos";
+    currentCvv = cvvForWindow(ventanaActual());
+    renderCvv(false);
+    announce(revealed ? "Datos de tarjeta mostrados" : "Datos ocultados");
+  });
+
+  copyBtn?.addEventListener("click", async () => {
+    const cvv = cvvForWindow(ventanaActual());
+    try {
+      await navigator.clipboard.writeText(cvv);
+      announce("CVV copiado");
+      showSnackbar("CVV copiado");
+    } catch {
+      showSnackbar("No se pudo copiar");
+    }
+  });
+
+  updateCountdown();
+  window.setInterval(updateCountdown, 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) updateCountdown();
+  });
+</script>
+
+<style>
+  .cvv-flip {
+    animation: cvv-flip 300ms ease;
+  }
+
+  @keyframes cvv-flip {
+    from {
+      opacity: 0.2;
+      transform: translateY(-3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cvv-flip {
+      animation: none;
+    }
+  }
+</style>
