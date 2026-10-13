@@ -82,12 +82,11 @@ export const movements: Movement[] = [
   },
 ];
 
-// Parámetros del simulador (valores provisionales de demostración).
-// Cambiar cualquier valor aquí actualiza el simulador y los Avisos.
+// Parámetros del simulador, alineados a las condiciones fijas (fixedTerms).
 export interface LoanConfig {
-  tasaAnual: number;
-  ivaIntereses: number;
-  comision: number;
+  tasaMensualSimple: number;
+  comisionApertura: number;
+  iva: number;
   montoMinimo: number;
   montoMaximo: number;
   montoInicial: number;
@@ -97,37 +96,18 @@ export interface LoanConfig {
 }
 
 export const loanConfig: LoanConfig = {
-  tasaAnual: 0.22,
-  ivaIntereses: 0.16,
-  comision: 0,
-  montoMinimo: 1000,
+  tasaMensualSimple: 0.2,
+  comisionApertura: 300,
+  iva: 0,
+  montoMinimo: 3500,
   montoMaximo: 8000,
-  montoInicial: 5000,
+  montoInicial: 3500,
   pasoMonto: 500,
   plazos: [3, 6, 9],
   plazoInicial: 6,
 };
 
 const money = (value: number): string => `$${value.toLocaleString("es-MX")}`;
-const percent = (value: number): string =>
-  `${(value * 100).toLocaleString("es-MX", { maximumFractionDigits: 2 })}%`;
-
-// Condiciones del producto derivadas de loanConfig.
-export const interestRates: ConditionRow[] = [
-  { label: "Tasa fija anual aplicable", value: percent(loanConfig.tasaAnual) },
-  { label: "IVA sobre intereses", value: percent(loanConfig.ivaIntereses) },
-  { label: "Tasa moratoria", value: "No aplica en este prototipo" },
-];
-
-export const cat = {
-  note: "CAT demostrativo. El costo depende del monto y plazo simulado.",
-};
-
-export const fees: ConditionRow[] = [
-  { label: "Comisión por apertura", value: money(loanConfig.comision) },
-  { label: "Anualidad", value: "$0" },
-  { label: "Comisión por disposición", value: "No aplica en este prototipo" },
-];
 
 export const terms: ConditionRow[] = [
   { label: "Monto mínimo", value: `${money(loanConfig.montoMinimo)} MXN` },
@@ -138,6 +118,36 @@ export const terms: ConditionRow[] = [
   },
   { label: "Día de pago", value: "15 de cada mes" },
 ];
+
+// Condiciones fijas del crédito (documento "Condiciones fijas del crédito y cálculo del CAT").
+// Única fuente de verdad para los apartados 1–3 de Avisos y privacidad.
+// Porcentajes expresados como puntos (240 = 240.00%).
+export const fixedTerms = {
+  entidad: "EN CREDIT, S.A. de C.V., SOFOM, E.N.R.",
+  monto: 3500,
+  plazoMeses: 6,
+  comisionApertura: 300,
+  montoNetoRecibido: 3200,
+  tasaOrdinariaAnual: 240,
+  tasaOrdinariaMensualSimple: 20,
+  tasaMoratoriaMensual: 25,
+  equivalenciaMoraAnual: 300,
+  comisionPagoTardio: 0,
+  pagoMensual1a5: 1283.33,
+  pagoMensual6: 1283.35,
+  interesMensual: 700,
+  interesTotal: 4200,
+  totalPagos: 7700,
+  totalPagadoConApertura: 8000,
+  catMensual: 32.79,
+  catAnual: 2905.7,
+  fuenteMetodologica:
+    "Banco de México, Circular 21/2009 (metodología del CAT). CONDUSEF: Registro de Contratos de Adhesión y Registro de Comisiones.",
+  // Datos de ejemplo para la tabla de interés moratorio (apartado 1).
+  capitalVencidoEjemplo: 583.33,
+  pagoVencidoEjemplo: 1283.33,
+  diasMoraEjemplo: [1, 7, 15, 30, 60],
+} as const;
 
 export const privacyExampleText =
   "Este aviso es un texto de ejemplo para el prototipo. El nombre que escribes de forma opcional y los destinatarios guardados se almacenan únicamente en el almacenamiento local de este dispositivo y no se envían a ningún servidor. No se solicitan permisos del navegador ni se recopilan datos de ubicación.";

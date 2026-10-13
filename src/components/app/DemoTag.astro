@@ -2,9 +2,12 @@
 interface Props {
   label?: string;
   class?: string;
+  variant?: "demo" | "fixed";
 }
 
-const { label = "Dato de demostración", class: className } = Astro.props;
+const { label, class: className, variant = "demo" } = Astro.props;
+const text =
+  label ?? (variant === "fixed" ? "Condiciones del ejercicio académico" : "Dato de demostración");
 ---
 
 <span
@@ -27,5 +30,5 @@ const { label = "Dato de demostración", class: className } = Astro.props;
     <path d="M12 11v5"></path>
     <path d="M12 8h.01"></path>
   </svg>
-  {label}
+  {text}
 </span>

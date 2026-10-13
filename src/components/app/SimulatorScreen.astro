@@ -3,7 +3,7 @@ import TopBar from "./TopBar.astro";
 import DemoTag from "./DemoTag.astro";
 import { loanConfig } from "../../config/product";
 import { buildLoan } from "../../lib/loan";
-import { formatMXN } from "../../lib/format";
+import { formatMXN, formatPercent } from "../../lib/format";
 
 const {
   montoMinimo,
@@ -12,30 +12,30 @@ const {
   pasoMonto,
   plazos,
   plazoInicial,
-  tasaAnual,
-  ivaIntereses,
-  comision,
+  tasaMensualSimple,
+  comisionApertura,
 } = loanConfig;
 
 const initial = buildLoan({
   monto: montoInicial,
   plazo: plazoInicial,
-  tasaAnual,
-  ivaIntereses,
-  comision,
+  tasaMensualSimple,
+  comisionApertura,
 });
 
-const tasaLabel = `${(tasaAnual * 100).toLocaleString("es-MX", { maximumFractionDigits: 2 })}%`;
+const tasaLabel = `${formatPercent(tasaMensualSimple * 12, 0)} anual · ${formatPercent(
+  tasaMensualSimple,
+  0
+)} mensual simple`;
 
 const money2 = (value: number) => formatMXN(value, 2);
-const capitalShareInicial = montoInicial / initial.totalPagar;
+const capitalShareInicial = montoInicial / initial.totalPagos;
 const interesShareInicial = 1 - capitalShareInicial;
 
 const initialRows = initial.tabla.map((fila) => ({
   mes: fila.mes,
   saldoInicial: money2(fila.saldoInicial),
   interes: money2(fila.interes),
-  iva: money2(fila.iva),
   capital: money2(fila.capital),
   pago: money2(fila.pago),
   saldoFinal: money2(fila.saldoFinal),
@@ -123,7 +123,7 @@ const initialRows = initial.tabla.map((fila) => ({
         <div class="rounded-2xl border border-border bg-surface p-4">
           <div class="flex items-center justify-between gap-2">
             <h3 class="font-roboto text-sm font-medium text-ink">Resultados</h3>
-            <DemoTag />
+            <DemoTag variant="fixed" />
           </div>
 
           <dl class="mt-3 flex flex-col gap-2.5 text-sm">
@@ -134,21 +134,27 @@ const initialRows = initial.tabla.map((fila) => ({
               </dd>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <dt class="text-muted">Tasa de interés anual aplicable</dt>
+              <dt class="text-muted">Comisión de apertura</dt>
+              <dd data-r-comision class="shrink-0 text-right font-roboto font-medium text-ink">
+                {money2(initial.comisiones)}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Monto neto que recibes</dt>
+              <dd data-r-neto class="shrink-0 text-right font-roboto font-medium text-ink">
+                {money2(initial.montoNeto)}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-muted">Tasa ordinaria</dt>
               <dd data-r-tasa class="shrink-0 text-right font-roboto font-medium text-ink">
                 {tasaLabel}
               </dd>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <dt class="text-muted">Intereses</dt>
+              <dt class="text-muted">Intereses totales</dt>
               <dd data-r-interes class="shrink-0 text-right font-roboto font-medium text-ink">
                 {money2(initial.interesTotal)}
-              </dd>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <dt class="text-muted">IVA de intereses</dt>
-              <dd data-r-iva class="shrink-0 text-right font-roboto font-medium text-ink">
-                {money2(initial.ivaTotal)}
               </dd>
             </div>
           </dl>
@@ -162,21 +168,32 @@ const initialRows = initial.tabla.map((fila) => ({
           </div>
 
           <div class="mt-3 flex items-center justify-between gap-3 text-sm">
-            <span class="text-muted">Total a pagar</span>
+            <span class="text-muted">Total de pagos</span>
             <span data-r-total class="shrink-0 text-right font-roboto font-semibold text-ink">
-              {money2(initial.totalPagar)}
+              {money2(initial.totalPagos)}
             </span>
           </div>
 
           <div class="mt-3 flex items-center justify-between gap-3 text-sm">
-            <span class="text-muted">CAT</span>
-            <span class="flex items-center gap-2">
-              <span data-r-cat class="font-roboto font-semibold text-ink">
-                {(initial.cat * 100).toFixed(2)}%
-              </span>
-              <DemoTag />
+            <span class="text-muted">Total pagado (incluye comisión de apertura)</span>
+            <span
+              data-r-total-apertura
+              class="shrink-0 text-right font-roboto font-semibold text-ink"
+            >
+              {money2(initial.totalPagadoConApertura)}
             </span>
           </div>
+
+          <div class="mt-3 flex items-center justify-between gap-3 text-sm">
+            <span class="text-muted">CAT anual</span>
+            <span class="flex items-center gap-2">
+              <span data-r-cat class="font-roboto font-semibold text-ink">
+                {formatPercent(initial.cat * 100, 1)}
+              </span>
+              <DemoTag variant="fixed" />
+            </span>
+          </div>
+          <p class="mt-1 text-xs text-muted">Sin IVA. Se recalcula al cambiar monto o plazo.</p>
 
           <!-- Barra capital vs. intereses -->
           <div class="mt-4">
@@ -197,8 +214,8 @@ const initialRows = initial.tabla.map((fila) => ({
               </span>
               <span class="flex items-center gap-1.5">
                 <span class="h-2 w-2 rounded-full bg-amber-400"></span>
-                Intereses + IVA
-                <span data-legend-interes>{money2(initial.interesTotal + initial.ivaTotal)}</span>
+                Intereses
+                <span data-legend-interes>{money2(initial.interesTotal)}</span>
               </span>
             </div>
           </div>
@@ -243,10 +260,6 @@ const initialRows = initial.tabla.map((fila) => ({
                         <dd class="text-ink">{fila.interes}</dd>
                       </div>
                       <div class="flex justify-between gap-2">
-                        <dt class="text-muted">IVA</dt>
-                        <dd class="text-ink">{fila.iva}</dd>
-                      </div>
-                      <div class="flex justify-between gap-2">
                         <dt class="text-muted">Saldo final</dt>
                         <dd class="text-ink">{fila.saldoFinal}</dd>
                       </div>
@@ -267,9 +280,8 @@ const initialRows = initial.tabla.map((fila) => ({
                   <tr>
                     <th class="px-3 py-2 font-medium">Mes</th>
                     <th class="px-3 py-2 font-medium">Saldo inicial</th>
-                    <th class="px-3 py-2 font-medium">Interés</th>
-                    <th class="px-3 py-2 font-medium">IVA</th>
                     <th class="px-3 py-2 font-medium">Capital</th>
+                    <th class="px-3 py-2 font-medium">Interés</th>
                     <th class="px-3 py-2 font-medium">Pago</th>
                     <th class="px-3 py-2 font-medium">Saldo final</th>
                   </tr>
@@ -280,9 +292,8 @@ const initialRows = initial.tabla.map((fila) => ({
                       <tr class="border-t border-border">
                         <td class="px-3 py-2 text-ink">{fila.mes}</td>
                         <td class="px-3 py-2 text-muted">{fila.saldoInicial}</td>
-                        <td class="px-3 py-2 text-muted">{fila.interes}</td>
-                        <td class="px-3 py-2 text-muted">{fila.iva}</td>
                         <td class="px-3 py-2 text-muted">{fila.capital}</td>
+                        <td class="px-3 py-2 text-muted">{fila.interes}</td>
                         <td class="px-3 py-2 text-ink">{fila.pago}</td>
                         <td class="px-3 py-2 text-muted">{fila.saldoFinal}</td>
                       </tr>
@@ -376,7 +387,7 @@ const initialRows = initial.tabla.map((fila) => ({
               <dd data-s-pago class="font-roboto font-semibold text-ink"></dd>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <dt class="text-muted">Total a pagar</dt>
+              <dt class="text-muted">Total pagado (incluye apertura)</dt>
               <dd data-s-total class="font-roboto font-medium text-ink"></dd>
             </div>
             <div class="flex items-center justify-between gap-3">
@@ -585,7 +596,7 @@ const initialRows = initial.tabla.map((fila) => ({
 <script>
   import { loanConfig } from "../../config/product";
   import { buildLoan, type AmortizationRow } from "../../lib/loan";
-  import { formatMXN } from "../../lib/format";
+  import { formatMXN, formatPercent } from "../../lib/format";
   import { initRipple } from "../../lib/ripple";
 
   initRipple();
@@ -622,9 +633,8 @@ const initialRows = initial.tabla.map((fila) => ({
   let lastResult = buildLoan({
     monto: loanConfig.montoInicial,
     plazo: loanConfig.plazoInicial,
-    tasaAnual: loanConfig.tasaAnual,
-    ivaIntereses: loanConfig.ivaIntereses,
-    comision: loanConfig.comision,
+    tasaMensualSimple: loanConfig.tasaMensualSimple,
+    comisionApertura: loanConfig.comisionApertura,
   });
 
   const buildTableRow = (fila: AmortizationRow): HTMLTableRowElement => {
@@ -633,9 +643,8 @@ const initialRows = initial.tabla.map((fila) => ({
     const cells: Array<[string, string]> = [
       [String(fila.mes), "text-ink"],
       [money2(fila.saldoInicial), "text-muted"],
-      [money2(fila.interes), "text-muted"],
-      [money2(fila.iva), "text-muted"],
       [money2(fila.capital), "text-muted"],
+      [money2(fila.interes), "text-muted"],
       [money2(fila.pago), "text-ink"],
       [money2(fila.saldoFinal), "text-muted"],
     ];
@@ -680,7 +689,6 @@ const initialRows = initial.tabla.map((fila) => ({
     dl.append(
       buildCardRow("Capital", money2(fila.capital)),
       buildCardRow("Interés", money2(fila.interes)),
-      buildCardRow("IVA", money2(fila.iva)),
       buildCardRow("Saldo final", money2(fila.saldoFinal))
     );
 
@@ -708,9 +716,8 @@ const initialRows = initial.tabla.map((fila) => ({
     lastResult = buildLoan({
       monto,
       plazo,
-      tasaAnual: loanConfig.tasaAnual,
-      ivaIntereses: loanConfig.ivaIntereses,
-      comision: loanConfig.comision,
+      tasaMensualSimple: loanConfig.tasaMensualSimple,
+      comisionApertura: loanConfig.comisionApertura,
     });
 
     if (amountDisplay) amountDisplay.textContent = formatMXN(monto);
@@ -723,17 +730,22 @@ const initialRows = initial.tabla.map((fila) => ({
     setText("[data-r-monto]", formatMXN(monto));
     setText(
       "[data-r-tasa]",
-      `${(loanConfig.tasaAnual * 100).toLocaleString("es-MX", { maximumFractionDigits: 2 })}%`
+      `${formatPercent(loanConfig.tasaMensualSimple * 12, 0)} anual · ${formatPercent(
+        loanConfig.tasaMensualSimple,
+        0
+      )} mensual simple`
     );
+    setText("[data-r-comision]", money2(lastResult.comisiones));
+    setText("[data-r-neto]", money2(lastResult.montoNeto));
     setText("[data-r-interes]", money2(lastResult.interesTotal));
-    setText("[data-r-iva]", money2(lastResult.ivaTotal));
     setText("[data-r-pago]", money2(lastResult.pagoMensual));
     setText("[data-r-pago-sticky]", money2(lastResult.pagoMensual));
-    setText("[data-r-total]", money2(lastResult.totalPagar));
-    setText("[data-r-cat]", `${(lastResult.cat * 100).toFixed(2)}%`);
+    setText("[data-r-total]", money2(lastResult.totalPagos));
+    setText("[data-r-total-apertura]", money2(lastResult.totalPagadoConApertura));
+    setText("[data-r-cat]", formatPercent(lastResult.cat * 100, 1));
 
     const capital = monto;
-    const interes = lastResult.interesTotal + lastResult.ivaTotal;
+    const interes = lastResult.interesTotal;
     const total = capital + interes || 1;
     const capitalBar = document.querySelector<HTMLElement>("[data-bar-capital]");
     const interesBar = document.querySelector<HTMLElement>("[data-bar-interes]");
@@ -749,9 +761,9 @@ const initialRows = initial.tabla.map((fila) => ({
       liveTimer = window.setTimeout(() => {
         live.textContent = `Simulación de ${formatMXN(monto)} a ${plazo} meses. Mensualidad ${money2(
           lastResult.pagoMensual
-        )}. Total a pagar ${money2(lastResult.totalPagar)}. CAT ${(lastResult.cat * 100).toFixed(
-          2
-        )} por ciento.`;
+        )}. Total pagado ${money2(lastResult.totalPagadoConApertura)}. CAT ${(
+          lastResult.cat * 100
+        ).toFixed(2)} por ciento.`;
       }, 300);
     }
   };
@@ -799,8 +811,8 @@ const initialRows = initial.tabla.map((fila) => ({
     setText("[data-s-monto]", formatMXN(getMonto()));
     setText("[data-s-plazo]", `${currentPlazo()} meses`);
     setText("[data-s-pago]", money2(lastResult.pagoMensual));
-    setText("[data-s-total]", money2(lastResult.totalPagar));
-    setText("[data-s-cat]", `${(lastResult.cat * 100).toFixed(2)}%`);
+    setText("[data-s-total]", money2(lastResult.totalPagadoConApertura));
+    setText("[data-s-cat]", formatPercent(lastResult.cat * 100, 1));
     sheet.hidden = false;
     document.querySelector<HTMLButtonElement>("[data-sim-cancel]")?.focus();
   };

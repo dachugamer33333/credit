@@ -2,32 +2,28 @@
 import TopBar from "./TopBar.astro";
 import DemoTag from "./DemoTag.astro";
 import {
-  cat,
   contractReca,
-  fees,
-  interestRates,
-  loanConfig,
+  fixedTerms,
   privacyExampleText,
   recas,
   terms,
 } from "../../config/product";
-import { buildLoan } from "../../lib/loan";
+import { formatMXN, formatPercent } from "../../lib/format";
+import { interesMoratorio } from "../../lib/credit-terms";
 
-const catResult = buildLoan({
-  monto: loanConfig.montoInicial,
-  plazo: Math.max(...loanConfig.plazos),
-  tasaAnual: loanConfig.tasaAnual,
-  ivaIntereses: loanConfig.ivaIntereses,
-  comision: loanConfig.comision,
+const moraRows = fixedTerms.diasMoraEjemplo.map((dias) => {
+  const mora = interesMoratorio(fixedTerms.capitalVencidoEjemplo, dias);
+  return {
+    dias,
+    mora: formatMXN(mora, 2),
+    total: formatMXN(fixedTerms.pagoVencidoEjemplo + mora, 2),
+  };
 });
-const catValue = `${(catResult.cat * 100).toLocaleString("es-MX", {
-  maximumFractionDigits: 2,
-})}%`;
 
 const sections = [
-  { id: "tasas", title: "Tasas de interés aplicables", kind: "rows", rows: interestRates },
+  { id: "tasas", title: "Tasas de interés aplicables", kind: "rates" },
   { id: "cat", title: "CAT (Costo Anual Total)", kind: "cat" },
-  { id: "comisiones", title: "Comisiones y otros cargos", kind: "rows", rows: fees },
+  { id: "comisiones", title: "Comisiones y otros cargos", kind: "fees" },
   { id: "plazos", title: "Plazos, pagos y condiciones del producto", kind: "rows", rows: terms },
   {
     id: "privacidad",
@@ -101,18 +97,180 @@ const sections = [
                 </dl>
               )}
 
+              {section.kind === "rates" && (
+                <div class="flex flex-col gap-3">
+                  <DemoTag variant="fixed" />
+                  <dl class="flex flex-col gap-2.5">
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Tasa ordinaria anual fija</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.tasaOrdinariaAnual)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Tasa ordinaria mensual simple fija</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.tasaOrdinariaMensualSimple)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Tasa moratoria mensual fija</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.tasaMoratoriaMensual)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Equivalencia mora anual nominal simple</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.equivalenciaMoraAnual)}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p class="leading-relaxed">
+                    La tasa ordinaria se mantiene fija mientras el contrato conserve esa condición.
+                  </p>
+
+                  <div class="rounded-xl border border-border bg-bg p-3">
+                    <h3 class="font-roboto text-sm font-semibold text-ink">Interés moratorio</h3>
+                    <p class="mt-1 leading-relaxed">
+                      Se aplica únicamente al capital vencido y en proporción a los días efectivos de
+                      atraso; no se capitaliza ni se calcula sobre el interés ordinario.
+                    </p>
+                    <p class="mt-2 rounded-lg bg-surface px-3 py-2 font-mono text-xs text-ink">
+                      interés moratorio = capital vencido × 25.00% × días de atraso ÷ 30
+                    </p>
+                  </div>
+
+                  <div>
+                    <p class="mb-2 text-xs text-muted">
+                      Ejemplo con capital vencido {formatMXN(fixedTerms.capitalVencidoEjemplo, 2)} y
+                      pago vencido {formatMXN(fixedTerms.pagoVencidoEjemplo, 2)}.
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-border">
+                      <table class="w-full min-w-[360px] border-collapse text-left text-xs">
+                        <thead class="bg-bg text-muted">
+                          <tr>
+                            <th class="px-3 py-2 font-medium">Días</th>
+                            <th class="px-3 py-2 font-medium">Interés moratorio</th>
+                            <th class="px-3 py-2 font-medium">Total estimado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {moraRows.map((row) => (
+                            <tr class="border-t border-border">
+                              <td class="px-3 py-2 text-ink">{row.dias}</td>
+                              <td class="px-3 py-2 text-muted">{row.mora}</td>
+                              <td class="px-3 py-2 text-ink">{row.total}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {section.kind === "cat" && (
-                <div class="flex flex-col gap-2">
-                  <div class="flex items-start justify-between gap-3">
-                    <span class="text-muted">CAT (demostrativo)</span>
-                    <span class="shrink-0 text-right font-roboto font-medium text-ink">
-                      {catValue}
+                <div class="flex flex-col gap-3">
+                  <DemoTag variant="fixed" />
+                  <div>
+                    <p class="font-display text-3xl font-bold text-ink">
+                      {formatPercent(fixedTerms.catAnual, 1)}
+                    </p>
+                    <p class="mt-1 text-sm text-muted">
+                      CAT mensual equivalente {formatPercent(fixedTerms.catMensual, 2)}
+                    </p>
+                    <p class="mt-1 text-xs text-muted">
+                      Sin IVA y para fines informativos y de comparación.
+                    </p>
+                  </div>
+
+                  <div class="rounded-xl border border-border bg-bg p-3">
+                    <h3 class="font-roboto text-sm font-semibold text-ink">Base del cálculo</h3>
+                    <dl class="mt-2 flex flex-col gap-2">
+                      <div class="flex items-start justify-between gap-3">
+                        <dt class="text-muted">Monto nominal</dt>
+                        <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                          {formatMXN(fixedTerms.monto, 2)}
+                        </dd>
+                      </div>
+                      <div class="flex items-start justify-between gap-3">
+                        <dt class="text-muted">Comisión de apertura</dt>
+                        <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                          {formatMXN(fixedTerms.comisionApertura, 2)}
+                        </dd>
+                      </div>
+                      <div class="flex items-start justify-between gap-3">
+                        <dt class="text-muted">Monto neto recibido</dt>
+                        <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                          {formatMXN(fixedTerms.montoNetoRecibido, 2)}
+                        </dd>
+                      </div>
+                      <div class="flex items-start justify-between gap-3">
+                        <dt class="text-muted">Pagos</dt>
+                        <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                          Seis pagos: cinco de {formatMXN(fixedTerms.pagoMensual1a5, 2)} y uno de{" "}
+                          {formatMXN(fixedTerms.pagoMensual6, 2)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  <p class="rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-700">
+                    Este CAT permanece igual únicamente si se conservan el monto, el plazo, la
+                    comisión, la tasa y el calendario de pagos. Si cualquiera cambia, el CAT debe
+                    recalcularse.
+                  </p>
+
+                  <p class="text-xs leading-relaxed text-muted">{fixedTerms.fuenteMetodologica}</p>
+                </div>
+              )}
+
+              {section.kind === "fees" && (
+                <div class="flex flex-col gap-3">
+                  <DemoTag variant="fixed" />
+                  <dl class="flex flex-col gap-2.5">
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Comisión de apertura</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.comisionApertura, 2)}
+                      </dd>
+                    </div>
+                    <p class="text-xs text-muted">
+                      Se descuenta del monto; el cliente recibe{" "}
+                      {formatMXN(fixedTerms.montoNetoRecibido, 2)}.
+                    </p>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Comisión adicional por pago tardío</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.comisionPagoTardio, 2)}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <p class="text-xs leading-relaxed">
+                    El costo del incumplimiento se cobra mediante el interés moratorio (ver “Tasas
+                    de interés aplicables”); su importe no es de $0.00, depende del capital vencido y
+                    los días de atraso.
+                  </p>
+
+                  <div class="flex items-start justify-between gap-3 border-t border-border pt-3">
+                    <span class="text-muted">Total pagado (incluye comisión de apertura)</span>
+                    <span class="shrink-0 text-right font-roboto font-semibold text-ink">
+                      {formatMXN(fixedTerms.totalPagadoConApertura, 2)}
                     </span>
                   </div>
-                  <div>
-                    <DemoTag />
+                  <p class="text-xs text-muted">
+                    Pagos por {formatMXN(fixedTerms.totalPagos, 2)} más{" "}
+                    {formatMXN(fixedTerms.comisionApertura, 2)} de apertura.
+                  </p>
+
+                  <div class="flex items-start justify-between gap-3">
+                    <span class="text-muted">Registro de comisiones ante CONDUSEF</span>
+                    <span class="shrink-0 text-right font-roboto font-medium text-ink">
+                      Pendiente de definir
+                    </span>
                   </div>
-                  <p class="text-xs text-muted">{cat.note}</p>
                 </div>
               )}
 
@@ -139,6 +297,11 @@ const sections = [
         ))
       }
     </div>
+
+    <p class="mt-4 text-xs leading-relaxed text-muted">
+      Antes de usarse en operaciones reales, estas condiciones deben validarse con el área jurídica y
+      de cumplimiento.
+    </p>
   </div>
 </section>
 

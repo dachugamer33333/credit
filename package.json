@@ -13,6 +13,7 @@
     "check:user": "node scripts/check-user.ts",
     "check:pay": "node scripts/check-pay.ts",
     "check:cards": "node scripts/check-cards.ts",
+    "check:terms": "node scripts/check-terms.ts",
     "check:layout": "node scripts/check-layout.ts",
     "astro": "astro"
   },

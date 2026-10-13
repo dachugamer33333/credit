@@ -6,6 +6,12 @@ export const formatMXN = (value: number, decimals = 0): string =>
     maximumFractionDigits: decimals,
   }).format(value);
 
+export const formatPercent = (value: number, decimals = 2): string =>
+  `${value.toLocaleString("es-MX", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })}%`;
+
 export const formatDateEsMx = (
   date: Date,
   options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" }
