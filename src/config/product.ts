@@ -159,6 +159,9 @@ export const contractReca = {
     "Es el modelo de contrato de adhesión que se registra ante la autoridad correspondiente para su uso con las personas usuarias. En este prototipo no se incluye un contrato vigente.",
 };
 
+// Número de registro RECA (fuente única). "Pendiente de definir".
+export const recaNumber = "Pendiente de definir";
+
 export const recas = {
   title: "RECAS",
   registry: "Pendiente de definir",

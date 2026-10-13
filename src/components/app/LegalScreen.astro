@@ -5,11 +5,17 @@ import {
   contractReca,
   fixedTerms,
   privacyExampleText,
+  recaNumber,
   recas,
-  terms,
 } from "../../config/product";
 import { formatMXN, formatPercent } from "../../lib/format";
 import { interesMoratorio } from "../../lib/credit-terms";
+import { buildLoan } from "../../lib/loan";
+import { legalMeta } from "../../data/legal/meta";
+import { compiledContent as contratoContent } from "../../data/legal/contrato.md";
+import { compiledContent as disposicionesContent } from "../../data/legal/disposiciones.md";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 const moraRows = fixedTerms.diasMoraEjemplo.map((dias) => {
   const mora = interesMoratorio(fixedTerms.capitalVencidoEjemplo, dias);
@@ -20,18 +26,63 @@ const moraRows = fixedTerms.diasMoraEjemplo.map((dias) => {
   };
 });
 
+// Apartado 4: condiciones y amortización del caso base (fixedTerms, método plano).
+const baseLoan = buildLoan({
+  monto: fixedTerms.monto,
+  plazo: fixedTerms.plazoMeses,
+  tasaMensualSimple: fixedTerms.tasaOrdinariaMensualSimple / 100,
+  comisionApertura: fixedTerms.comisionApertura,
+});
+const scheduleRows = baseLoan.tabla.map((fila) => ({
+  mes: fila.mes,
+  saldoInicial: formatMXN(fila.saldoInicial, 2),
+  capital: formatMXN(fila.capital, 2),
+  interes: formatMXN(fila.interes, 2),
+  pago: formatMXN(fila.pago, 2),
+  saldoFinal: formatMXN(fila.saldoFinal, 2),
+}));
+const pagosTexto = `Cinco pagos de ${formatMXN(fixedTerms.pagoMensual1a5, 2)} y uno de ${formatMXN(
+  fixedTerms.pagoMensual6,
+  2
+)}`;
+
+interface DocSection {
+  title: string;
+  body: string;
+}
+
+// Parte el HTML renderizado (build-time) por <h2> para sub-acordeones sin JS.
+const splitByH2 = (html: string): { intro: string; sections: DocSection[] } => {
+  const parts = html.split(/<h2[^>]*>/i);
+  const intro = parts.shift() ?? "";
+  const items = parts.map((chunk) => {
+    const close = chunk.indexOf("</h2>");
+    const title = (close >= 0 ? chunk.slice(0, close) : chunk)
+      .replace(/<[^>]+>/g, "")
+      .trim();
+    const body = close >= 0 ? chunk.slice(close + "</h2>".length) : "";
+    return { title, body };
+  });
+  return { intro, sections: items };
+};
+
+const contrato = splitByH2(await contratoContent());
+const disposiciones = await disposicionesContent();
+const hasContractPdf = existsSync(join(process.cwd(), "public", "legal", "contrato.pdf"));
+
 const sections = [
   { id: "tasas", title: "Tasas de interés aplicables", kind: "rates" },
   { id: "cat", title: "CAT (Costo Anual Total)", kind: "cat" },
   { id: "comisiones", title: "Comisiones y otros cargos", kind: "fees" },
-  { id: "plazos", title: "Plazos, pagos y condiciones del producto", kind: "rows", rows: terms },
+  { id: "plazos", title: "Plazos, pagos y condiciones del producto", kind: "schedule" },
   {
     id: "privacidad",
     title: "Aviso de privacidad y tratamiento de datos personales",
     kind: "privacy",
   },
-  { id: "reca", title: "Contrato de adhesión (RECA)", kind: "registry", data: contractReca },
+  { id: "reca", title: "Contrato de adhesión (RECA)", kind: "contract" },
   { id: "recas", title: "RECAS", kind: "registry", data: recas },
+  { id: "disposiciones", title: "Disposiciones legales aplicables", kind: "legal" },
 ] as const;
 ---
 
@@ -84,17 +135,119 @@ const sections = [
               hidden
               class="border-t border-border px-4 py-4 text-sm text-muted"
             >
-              {section.kind === "rows" && (
-                <dl class="flex flex-col gap-2.5">
-                  {section.rows.map((row) => (
+              {section.kind === "schedule" && (
+                <div class="flex flex-col gap-3">
+                  <DemoTag variant="fixed" />
+                  <dl class="flex flex-col gap-2.5">
                     <div class="flex items-start justify-between gap-3">
-                      <dt class="text-muted">{row.label}</dt>
+                      <dt class="text-muted">Monto</dt>
                       <dd class="shrink-0 text-right font-roboto font-medium text-ink">
-                        {row.value}
+                        {formatMXN(fixedTerms.monto, 2)}
                       </dd>
                     </div>
-                  ))}
-                </dl>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Plazo</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {fixedTerms.plazoMeses} meses
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Tasa ordinaria</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.tasaOrdinariaAnual, 0)} anual ·{" "}
+                        {formatPercent(fixedTerms.tasaOrdinariaMensualSimple, 0)} mensual simple
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Interés mensual</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.interesMensual, 2)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Intereses totales</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.interesTotal, 2)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Pagos</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {pagosTexto}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Comisión de apertura</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.comisionApertura, 2)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Monto neto que recibe el cliente</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.montoNetoRecibido, 2)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Total de pagos</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.totalPagos, 2)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Total pagado (incluye comisión de apertura)</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatMXN(fixedTerms.totalPagadoConApertura, 2)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">Tasa moratoria mensual</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.tasaMoratoriaMensual, 0)} (
+                        {formatPercent(fixedTerms.equivalenciaMoraAnual, 0)} anual nominal simple)
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-muted">CAT anual</dt>
+                      <dd class="shrink-0 text-right font-roboto font-medium text-ink">
+                        {formatPercent(fixedTerms.catAnual, 1)} (
+                        {formatPercent(fixedTerms.catMensual, 2)} mensual)
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div>
+                    <h3 class="mb-2 font-roboto text-sm font-semibold text-ink">
+                      Tabla de amortización (caso base)
+                    </h3>
+                    <div class="overflow-x-auto rounded-xl border border-border">
+                      <table class="w-full min-w-[560px] border-collapse text-left text-xs">
+                        <thead class="bg-bg text-muted">
+                          <tr>
+                            <th class="px-3 py-2 font-medium">Mes</th>
+                            <th class="px-3 py-2 font-medium">Saldo inicial</th>
+                            <th class="px-3 py-2 font-medium">Capital</th>
+                            <th class="px-3 py-2 font-medium">Interés</th>
+                            <th class="px-3 py-2 font-medium">Pago</th>
+                            <th class="px-3 py-2 font-medium">Saldo final</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {scheduleRows.map((row) => (
+                            <tr class="border-t border-border">
+                              <td class="px-3 py-2 text-ink">{row.mes}</td>
+                              <td class="px-3 py-2 text-muted">{row.saldoInicial}</td>
+                              <td class="px-3 py-2 text-muted">{row.capital}</td>
+                              <td class="px-3 py-2 text-muted">{row.interes}</td>
+                              <td class="px-3 py-2 text-ink">{row.pago}</td>
+                              <td class="px-3 py-2 text-muted">{row.saldoFinal}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {section.kind === "rates" && (
@@ -283,6 +436,42 @@ const sections = [
                 </div>
               )}
 
+              {section.kind === "contract" && (
+                <div class="flex flex-col gap-3">
+                  <DemoTag variant="fixed" label={`Estado: ${legalMeta.status}`} />
+                  <p class="leading-relaxed">{contractReca.description}</p>
+                  <p>
+                    <span class="text-muted">Número de registro RECA:</span>{" "}
+                    <span class="font-roboto font-medium text-ink">{recaNumber}</span>
+                  </p>
+
+                  {
+                    hasContractPdf && (
+                      <a
+                        href="/legal/contrato.pdf"
+                        download
+                        class="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full border border-border px-4 text-sm font-semibold text-ink transition duration-200 hover:bg-slate-100"
+                      >
+                        Descargar PDF
+                      </a>
+                    )
+                  }
+
+                  <div class="legal-doc" set:html={contrato.intro} />
+
+                  <div class="flex flex-col gap-2">
+                    {contrato.sections.map((sec, i) => (
+                      <details class="legal-subdetails" open={i === 0}>
+                        <summary>{sec.title}</summary>
+                        <div class="legal-doc legal-doc--panel" set:html={sec.body} />
+                      </details>
+                    ))}
+                  </div>
+
+                  <p class="text-xs leading-relaxed text-muted">{legalMeta.notice}</p>
+                </div>
+              )}
+
               {section.kind === "registry" && (
                 <div class="flex flex-col gap-2.5">
                   <p class="leading-relaxed">{section.data.description}</p>
@@ -290,6 +479,14 @@ const sections = [
                     <span class="text-muted">Número de registro:</span>{" "}
                     <span class="font-roboto font-medium text-ink">{section.data.registry}</span>
                   </p>
+                </div>
+              )}
+
+              {section.kind === "legal" && (
+                <div class="flex flex-col gap-3">
+                  <DemoTag variant="fixed" label={`Estado: ${legalMeta.status}`} />
+                  <div class="legal-doc" set:html={disposiciones} />
+                  <p class="text-xs leading-relaxed text-muted">{legalMeta.notice}</p>
                 </div>
               )}
             </div>
@@ -337,5 +534,86 @@ const sections = [
 <style>
   [data-acc-trigger][aria-expanded="true"] [data-acc-icon] {
     transform: rotate(180deg);
+  }
+
+  /* Documentos legales renderizados desde markdown (set:html) */
+  .legal-doc {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-ink);
+    overflow-wrap: anywhere;
+  }
+
+  .legal-doc :global(p) {
+    margin: 0 0 0.75em;
+  }
+
+  .legal-doc :global(ul) {
+    list-style: disc;
+    margin: 0 0 0.75em;
+    padding-left: 1.25rem;
+  }
+
+  .legal-doc :global(ol) {
+    list-style: decimal;
+    margin: 0 0 0.75em;
+    padding-left: 1.25rem;
+  }
+
+  .legal-doc :global(li) {
+    margin: 0 0 0.3em;
+  }
+
+  .legal-doc :global(h1),
+  .legal-doc :global(h2),
+  .legal-doc :global(h3),
+  .legal-doc :global(h4) {
+    font-family: var(--font-roboto);
+    font-weight: 700;
+    color: var(--color-ink);
+    font-size: 0.95rem;
+    margin: 0.9em 0 0.4em;
+  }
+
+  .legal-doc :global(strong) {
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  .legal-doc :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+  }
+
+  .legal-doc--panel {
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .legal-subdetails {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .legal-subdetails > summary {
+    display: flex;
+    min-height: 2.75rem;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--font-roboto);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .legal-subdetails > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .legal-subdetails[open] > summary {
+    border-bottom: 1px solid var(--color-border);
   }
 </style>
